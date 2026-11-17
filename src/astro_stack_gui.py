@@ -157,6 +157,11 @@ EN.update({
     '识别结果已写入: %s': 'identification written: %s',
 })
 
+EN.update({
+    "已生成: %s  (目标: %s)": "written: %s  (object: %s)",
+    "已生成: %s": "written: %s",
+})
+
 
 def _lang_path():
     base = (os.path.dirname(sys.executable) if getattr(sys, "frozen", False)
@@ -1747,6 +1752,17 @@ def short_label(label):
     return label.split(" (")[0].strip()
 
 
+def obj_display_name(name):
+    """英文界面下把 "M42 猎户座大星云 (Great Orion Nebula)" 变成 "Great Orion Nebula"。"""
+    if not name:
+        return name
+    if LANG != "en":
+        return name
+    m = re.search(r"\(([^)]+)\)", str(name))
+    if m:
+        return m.group(1).strip()
+    return str(name)
+
 def add_name_border(src, dst=None, name="未知", border_frac=0.05, jpeg_quality=95):
     """给照片加白色边框, 底部白色区域用黑字写天体名称."""
     from PIL import Image, ImageDraw
@@ -2639,7 +2655,7 @@ class Pipeline(object):
             obj_path = os.path.splitext(out)[0] + "_object.txt"
             with open(obj_path, "w", encoding="utf-8") as f:
                 name_txt = self.object_name or ("未启用识别" if not getattr(o, "identify", True) else "未知")
-                f.write("识别结果: %s\n" % name_txt)
+                f.write((tr("识别结果: %s") if LANG == "en" else "识别结果: %s") % obj_display_name(name_txt) + "\n")
                 if self.solve_info:
                     si = self.solve_info
                     f.write("星场中心: %s\n" % radec_text(si["ra"], si["dec"]))
@@ -2998,7 +3014,7 @@ def run_cli(argv):
             for line in identify_report(a.frame, res).split("\n"):
                 print(line, flush=True)
         out = a.out or (os.path.splitext(a.frame)[0] + "_framed.jpg")
-        add_name_border(a.frame, out, name, a.border)
+        add_name_border(a.frame, out, obj_display_name(name), a.border)
         print("已生成: %s  (目标: %s)" % (out, short_label(name)), flush=True)
         return 0
 
@@ -3635,7 +3651,7 @@ def run_gui():
             else:
                 name = opts["target"] or "未知"
                 log("[加边框] 手动指定: %s" % name)
-            out = add_name_border(path, None, name, opts["border"])
+            out = add_name_border(path, None, obj_display_name(name), opts["border"])
             log("[加边框] 已保存: %s" % out)
             q.put(("ident", "已生成带名称白边的成品\n\n目标: %s\n输出: %s" % (short_label(name), out)))
         except Exception as e:

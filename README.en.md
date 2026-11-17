@@ -17,7 +17,7 @@ grading, and automatic plate solving.
 Four path boxes and one options panel. Light-pollution handling and most parameters
 can be left on auto.
 
-![GUI](docs/images/gui.png)
+![GUI](docs/images/gui.en.png)
 
 ---
 
@@ -171,7 +171,7 @@ slightly softer on stars.
 The 1050-frame result above, with a white border and the object name in black. The name is
 detected automatically.
 
-![Framed](docs/images/name_border.jpg)
+![Framed](docs/images/name_border.en.jpg)
 
 ### 11. Plate solving
 

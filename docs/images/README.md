@@ -22,7 +22,8 @@
 
 | 文件 | 内容 | 数据来源 |
 |---|---|---|
-| `gui.png` | 程序界面截图 | 程序运行截图 |
+| `gui.png` | 程序界面截图（中文） | 程序运行截图 |
+| `gui.en.png` | 程序界面截图（英文） | 程序运行截图 |
 | `stack_result.jpg` | M42 成品（1050 帧全量） | 猎户座素材 |
 | `calibration.jpg` | 暗场/平场校正前后 | 猎户座素材 60 帧 |
 | `bg_removal.jpg` | 去光污染前后 | ISO400 银河 500 帧 |
@@ -32,7 +33,8 @@
 | `star_remove.jpg` | 去星前后 | 猎户座素材 1050 帧 |
 | `stretch.jpg` | 线性 vs 自动拉伸 | 猎户座素材 1050 帧 |
 | `warp_compare.jpg` | 三次 vs 双线性重采样 | 猎户座素材 60 帧 |
-| `name_border.jpg` | 加白边成品 | 猎户座素材 1050 帧 |
+| `name_border.jpg` | 加白边成品（中文标题） | 猎户座素材 1050 帧 |
+| `name_border.en.jpg` | 加白边成品（英文标题） | 猎户座素材 1050 帧 |
 
 ---
 
@@ -58,7 +60,8 @@ Every image here was **taken and stacked by the author** with a Sony a6400 and a
 
 | File | Contents | Source data |
 |---|---|---|
-| `gui.png` | program screenshot | application screenshot |
+| `gui.png` | program screenshot (Chinese) | application screenshot |
+| `gui.en.png` | program screenshot (English) | application screenshot |
 | `stack_result.jpg` | M42 result, all 1050 frames | Orion dataset |
 | `calibration.jpg` | dark/flat calibration before and after | Orion, 60 frames |
 | `bg_removal.jpg` | light pollution removal before and after | ISO400 Milky Way, 500 frames |
@@ -68,4 +71,5 @@ Every image here was **taken and stacked by the author** with a Sony a6400 and a
 | `star_remove.jpg` | star removal before and after | Orion, 1050 frames |
 | `stretch.jpg` | linear vs auto stretched | Orion, 1050 frames |
 | `warp_compare.jpg` | cubic vs bilinear resampling | Orion, 60 frames |
-| `name_border.jpg` | framed output | Orion, 1050 frames |
+| `name_border.jpg` | framed output (Chinese title) | Orion, 1050 frames |
+| `name_border.en.jpg` | framed output (English title) | Orion, 1050 frames |
