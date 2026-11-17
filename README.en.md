@@ -221,6 +221,10 @@ python src/astro_stack_gui.py --cli --lights "D:\photos\light" \
 The GUI is three steps: pick the lights folder, pick darks and flats, press Start.
 Defaults in the options panel suit most situations.
 
+**Language**: the dropdown at the top of the window switches Chinese and English live; the
+choice is stored in `settings.json` and reused next launch. On the command line use
+`--lang zh|en`, which switches both the log output and `--help`.
+
 Common command lines:
 
 ```bash

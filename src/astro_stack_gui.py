@@ -106,6 +106,142 @@ EXIF_TIME_TAGS = (0x9003, 0x0132)
 # 基础图像工具
 # --------------------------------------------------------------------------
 
+
+# ---------------------------------------------------------------------------
+# 双语 / bilingual
+# ---------------------------------------------------------------------------
+LANG = "zh"
+EN = {'深空堆栈工具  Deep-Sky Stacker': 'Deep-Sky Stacker', '语言': 'Language', '选择文件夹': 'Select folder', '输出 TIFF': 'Output TIFF', '浏览…': 'Browse…', '亮场文件夹': 'Lights folder', '暗场文件夹': 'Darks folder', '平场文件夹': 'Flats folder', '输出文件': 'Output file', '选项': 'Options', 'σ 剔除倍数': 'Sigma rejection (κ)', '线程数': 'Threads', '叠加方式': 'Stacking mode', '已检测到可用 GPU': 'GPU available', '未检测到 GPU（已禁用 GPU 选项）': 'No GPU detected (GPU mode disabled)', '或手动指定': 'Or set object', '输出内容': 'Output content', '去光污染': 'Light pollution', '自动按素材判断': 'Auto (from data)', '手动设置': 'Manual', '逐帧去光污染': 'Per-frame LP removal', '开': 'On', '减法': 'Subtract', '除法': 'Divide', '结构保护': 'Structure protection', '色噪去除': 'Chroma denoise', '多项式阶': 'Polynomial degree', 'RBF 平滑': 'RBF smoothing', '小波降噪': 'Wavelet denoise', '（层数 4，只处理亮度）': '(4 scales, luminance only)', '星点处理': 'Star handling', '强度': 'Strength', '快速重采样（双线性，略软·更快）': 'Fast resampling (bilinear, softer, faster)', '自动裁剪到公共覆盖区域': 'Auto crop to common area', '自动识别目标': 'Auto object identification', '按目标类型优化': 'Optimise by object type', 'TIFF 白平衡版': 'White-balanced TIFF', '额外输出 16bit PNG': 'Extra 16-bit PNG', '背景平整(旧算法)': 'Background flatten (legacy)', '请手动选择下面各项': 'Pick the items below manually', '自动判断素材光污染，参数由程序定': 'Light pollution graded automatically', '就绪': 'Ready', '开始堆栈': 'Start stacking', '取消': 'Cancel', '单独识别星空…': 'Identify frame…', '加白边成品…': 'Framed output…', '自动拉伸…': 'Auto stretch…', '识别结果': 'Identification', '完成': 'Done', '已停止': 'Stopped', '出错': 'Error', '无法开始堆栈': 'Cannot start stacking', '提示': 'Notice', '请先选择亮场文件夹': 'Please choose the lights folder first', '准备中…': 'Preparing…', '未知': 'unknown', '已取消': 'Cancelled', '识别中…': 'Identifying…', '未填': 'unset', '选择要识别的图片或 RAW 文件': 'Choose an image or RAW file to identify', 'RAW 或图像': 'RAW or image', '所有文件': 'All files', '选择要拉伸的线性 TIFF': 'Choose a linear TIFF to stretch', '正在取消…': 'Cancelling…', '原版(两遍叠加)': 'Two-pass', 'CPU 单遍优化': 'CPU single-pass', 'GPU 加速': 'GPU', '线性 + 拉伸（都生成）': 'Linear + stretched (both)', '只生成线性 TIFF': 'Linear only', '只生成拉伸 TIFF': 'Stretched only', '自动判断（推荐）': 'Auto (recommended)', '低（郊区/暗夜）': 'Low (suburban / dark)', '中（城郊）': 'Mid (outskirts)', '高（城市）': 'High (city)', '不处理': 'Off', '缩星': 'Reduce', '去星': 'Remove', '关': 'Off', '轻': 'Light', '中': 'Medium', '强': 'Strong', '（自动识别）': '(auto identify)', '自动选择': 'Auto', '不填(未知)': 'Not set (unknown)', '全画幅 36×24': 'Full frame 36x24', 'APS-C(佳能) 22.3×14.9': 'APS-C (Canon) 22.3x14.9', '1 英寸 13.2×8.8': '1 inch 13.2x8.8', '窄视场 4°~8°': 'Narrow 4-8 deg', '中等 10°~30°': 'Medium 10-30 deg', '宽视场 12°~60°': 'Wide 12-60 deg', '亮场 %d 张, 暗场 %d 张, 平场 %d 张': 'lights %d, darks %d, flats %d', '输出目录: %s': 'Output directory: %s', '已按拍摄时间排序亮场': 'Lights sorted by capture time', '正在识别拍摄目标(内置星表盲解) ...': 'Identifying field (blind solve) ...', '星场解算失败, 目标名称: 未知': 'Solve failed, object unknown', '未识别出具体目标, 跳过按类型优化': 'No object identified, skipping type tuning', '配准完成: %d/%d 帧': 'Registration done: %d/%d frames', '去马赛克 ...': 'Demosaicing ...', 'GPU 单遍叠加 (重采样+累加在显卡上) ...': 'GPU single-pass stacking ...', 'CPU 单遍叠加 (在线 κσ 剔除) ...': 'CPU single-pass stacking ...', 'Background2D 完成': 'Background2D done', '已保存线性 16bit TIFF: %s': 'Linear 16-bit TIFF saved: %s', '总耗时 %.1f 分钟, 叠加 %d 帧, 目标: %s': 'Finished in %.1f min, %d frames, object: %s', 'RAW 亮场/暗场/平场 配准堆栈': 'Register and stack RAW lights, darks and flats', '界面语言: zh(中文) / en(English)': 'interface language: zh / en', '只处理前 N 张亮场(调试用)': 'process only the first N lights (debug)', '不做目标识别': 'skip object identification', '手动指定目标名称, 例如 M42': 'set the object manually, e.g. M42', '单独识别图片/RAW 文件, 不做堆栈': 'identify one image/RAW file without stacking', '画幅, 如 APS-C / 全画幅 / M4/3': 'sensor, e.g. APS-C / full frame / M4/3', '焦距 mm': 'focal length in mm', '裁切系数, 覆盖 --sensor': 'crop factor, overrides --sensor', '星表: auto / 窄视场 / 中等 / 宽视场 / 全部尝试': 'catalogue: auto / narrow / medium / wide / all', '额外输出 16bit PNG 彩色预览图': 'also write a 16-bit colour PNG preview', '输出内容: both=线性+拉伸(默认) / linear=只线性 / stretch=只拉伸': 'output: both=linear+stretched (default) / linear / stretch', '等同于 --out-kind linear (兼容旧用法)': 'same as --out-kind linear (legacy)', '拉伸图饱和度倍数': 'saturation of the stretched image', '背景平整(叠加后): 去大尺度渐变': 'flatten background after stacking: remove large gradients', '逐帧去光污染(适合重度光害/无跟踪)': 'per-frame LP removal (heavy light pollution / untracked)', '重采样用双线性(更快, 星点略软); 默认三次插值': 'bilinear resampling (faster, softer stars); cubic is default', '小波降噪强度: off/light(0.30)/medium(0.50)/strong(0.70)': 'wavelet denoise: off/light(0.30)/medium(0.50)/strong(0.70)', '小波层数(默认 4)': 'wavelet scales (default 4)', 'JPG 长边像素上限(默认 2600)': 'JPG long-edge limit (default 2600)', 'JPG 质量(默认 92)': 'JPG quality (default 92)', '叠加后的星点处理: off / reduce(缩星) / remove(去星)': 'star handling after stacking: off / reduce / remove', '星点处理强度 0~1': 'star handling strength 0..1', '关闭按目标类型优化': 'disable type-based tuning', '预览饱和度倍数, 默认 1.0': 'preview saturation, default 1.0', '单独加白边成品(输出 _framed.jpg)': 'framed output with the object name (_framed.jpg)', '边框宽度, 占短边比例(默认 0.05)': 'border width as a fraction of the short side', '自动拉伸线性 TIFF': 'auto stretch a linear TIFF', '拉伸后饱和度': 'saturation after stretching', '光污染处理等级: auto/low/mid/high/manual': 'light pollution level: auto/low/mid/high/manual', '逐帧去光污染(每帧扣背景)': 'per-frame LP removal', '逐帧去光污染用除法': 'per-frame LP removal, divide mode', '网格背景提取(叠加后)': 'mesh background extraction after stacking', '背景地板分位数': 'background floor percentile', '网格背景 + 结构保护(保住星云/银河)': 'mesh background + structure protection', '二维多项式曲面(1=平面, 2~4=曲面)': 'polynomial surface (1=plane, 2..4=curved)', 'RBF 薄板样条背景(平滑量 0=关)': 'RBF thin-plate background (0=off)', '旧的后置背景平整': 'legacy post-stack flatten', '小波色噪去除(只处理色度)': 'wavelet chroma denoise (chrominance only)', '色噪小波层数(默认 3)': 'chroma wavelet scales (default 3)', '旧的色度高斯降噪 sigma(0=关)': 'legacy Gaussian chroma denoise sigma (0=off)', 'TIFF 输出时应用相机白平衡': 'apply camera white balance to the TIFF', '手动指定目标 (跳过视场检查)': 'set the object manually (skips the FOV check)'}
+
+
+# 补充条目（避免直接改上面的 EN 字面量）
+EN.update({
+    "自动判断素材光污染，参数由程序定": "Light pollution graded automatically",
+    "中文": "中文",
+})
+
+
+# 补充条目（避免直接改上面的 EN 字面量）
+EN.update({
+    "自动判断素材光污染，参数由程序定": "Light pollution graded automatically",
+    "中文": "中文",
+    "已保存预览图(仅拉伸, 未做色彩校准): %s": "Preview written (stretched, not colour-calibrated): %s",
+    "已保存 16bit PNG 预览: %s": "16-bit PNG preview written: %s",
+    "已保存拉伸 16bit TIFF(可直接用): %s": "Stretched 16-bit TIFF written (ready to use): %s",
+    "识别结果已写入: %s": "Identification written: %s",
+    "星点处理: %s (强度 %.2f, 掩膜覆盖 %.1f%%)":
+        "Star handling: %s (strength %.2f, mask covers %.1f%%)",
+    "已保存无星版: %s": "Starless version written: %s",
+    "已保存星点层: %s": "Star layer written: %s",
+    "已保存缩星版: %s": "Reduced-star version written: %s",
+    "自动判断光污染等级: %s (背景中位 %.0f, 平面梯度 %.0f (相对 %.2f), 评分 %.2f)":
+        "Light pollution level: %s (background median %.0f, plane gradient %.0f (relative %.2f), score %.2f)",
+    "视场 %.1f° (%s), 可用星表覆盖 %.1f°~%.1f° -> 在范围内":
+        "FOV %.1f deg (%s), catalogue coverage %.1f-%.1f deg -> in range",
+    "视场超出星表范围, 不做按类型优化(可用'手动指定'强制启用)":
+        "FOV outside catalogue range, skipping type tuning (use manual object to force)",
+    "目标为用户手动指定, 跳过视场检查": "Object set manually, skipping FOV check",
+    "叠加 %d 帧 (GPU)": "stacking %d frames (GPU)",
+})
+
+
+def _lang_path():
+    base = (os.path.dirname(sys.executable) if getattr(sys, "frozen", False)
+            else os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, "settings.json")
+
+
+def load_lang():
+    global LANG
+    try:
+        with open(_lang_path(), "r", encoding="utf-8-sig") as f:
+            v = json.load(f).get("lang", "zh")
+        LANG = "en" if str(v).lower().startswith("en") else "zh"
+    except Exception:
+        LANG = "zh"
+
+
+def save_lang():
+    try:
+        with open(_lang_path(), "w", encoding="utf-8") as f:
+            json.dump({"lang": LANG}, f)
+    except Exception:
+        pass
+
+
+def set_lang(v):
+    global LANG
+    LANG = "en" if str(v).lower().startswith("en") else "zh"
+
+
+def tr(s):
+    if LANG == "zh":
+        return s
+    return EN.get(s, s)
+
+
+_LANG_BINDINGS = []     # [(widget, 中文文本)]
+_LANG_COMBOS = []       # [(widget, [中文值...])]
+
+
+def lang_bind(root):
+    """把当前所有控件的中文文本记下来，供切换语言时重写。"""
+    del _LANG_BINDINGS[:]
+    del _LANG_COMBOS[:]
+
+    def walk(w):
+        yield w
+        for c in w.winfo_children():
+            yield from walk(c)
+
+    for w in walk(root):
+        try:
+            cls = w.winfo_class()
+        except Exception:
+            continue
+        if cls == "TCombobox":
+            try:
+                _LANG_COMBOS.append((w, list(w.cget("values"))))
+            except Exception:
+                pass
+            continue
+        try:
+            txt = w.cget("text")
+        except Exception:
+            continue
+        if txt:
+            _LANG_BINDINGS.append((w, txt))
+
+
+def lang_apply(root):
+    for w, zh in _LANG_BINDINGS:
+        try:
+            w.configure(text=tr(zh))
+        except Exception:
+            pass
+    for w, vals in _LANG_COMBOS:
+        try:
+            cur = w.get()
+            shown = [tr(v) for v in vals]
+            idx = None
+            for cand in (cur, tr(cur)):
+                if cand in shown:
+                    idx = shown.index(cand)
+                    break
+                if cand in vals:
+                    idx = vals.index(cand)
+                    break
+            w.configure(values=shown)
+            if idx is not None:
+                w.set(shown[idx])
+        except Exception:
+            pass
+    try:
+        root.title(tr("深空堆栈工具  Deep-Sky Stacker"))
+    except Exception:
+        pass
+
+
 def _warp_order(o):
     """重采样阶数：3=三次(Catmull-Rom/样条，默认)，1=双线性(快，略软)。"""
     try:
@@ -1747,10 +1883,10 @@ class Pipeline(object):
         self.solve_info = None
 
     def log(self, msg):
-        self._log(msg)
+        self._log(tr(msg))
 
     def prog(self, frac, msg=""):
-        self._prog(float(frac), msg)
+        self._prog(float(frac), tr(msg) if msg else msg)
 
     def check(self):
         if self.cancel.is_set():
@@ -2760,69 +2896,77 @@ class Pipeline(object):
 # --------------------------------------------------------------------------
 def run_cli(argv):
     import argparse
-    ap = argparse.ArgumentParser(description="RAW 亮场/暗场/平场 配准堆栈")
+    load_lang()
+    for _i, _a in enumerate(argv):
+        if _a == "--lang" and _i + 1 < len(argv):
+            set_lang(argv[_i + 1])
+        elif _a.startswith("--lang="):
+            set_lang(_a.split("=", 1)[1])
+    ap = argparse.ArgumentParser(description=tr("RAW 亮场/暗场/平场 配准堆栈"))
+    ap.add_argument("--lang", default=None, choices=["zh", "en"],
+                    help=tr("界面语言: zh(中文) / en(English)"))
     ap.add_argument("--lights", default=None)
     ap.add_argument("--darks", default=None)
     ap.add_argument("--flats", default=None)
     ap.add_argument("--out", default=None)
     ap.add_argument("--kappa", type=float, default=3.0)
     ap.add_argument("--threads", type=int, default=4)
-    ap.add_argument("--limit", type=int, default=0, help="只处理前 N 张亮场(调试用)")
+    ap.add_argument("--limit", type=int, default=0, help=tr("只处理前 N 张亮场(调试用)"))
     ap.add_argument("--no-crop", action="store_true")
-    ap.add_argument("--no-identify", action="store_true", help="不做目标识别")
-    ap.add_argument("--object", default=None, help="手动指定目标名称, 例如 M42")
-    ap.add_argument("--identify", default=None, help="单独识别图片/RAW 文件, 不做堆栈")
-    ap.add_argument("--sensor", default=None, help="画幅, 如 APS-C / 全画幅 / M4/3")
-    ap.add_argument("--focal", type=float, default=None, help="焦距 mm")
-    ap.add_argument("--crop", type=float, default=None, help="裁切系数, 覆盖 --sensor")
-    ap.add_argument("--catalog", default="auto", help="星表: auto / 窄视场 / 中等 / 宽视场 / 全部尝试")
-    ap.add_argument("--wb", action="store_true", help="TIFF 输出时应用相机白平衡+色彩矩阵(线性 sRGB)")
-    ap.add_argument("--preview-sat", type=float, default=1.0, help="预览饱和度倍数, 默认 1.0")
-    ap.add_argument("--png", action="store_true", help="额外输出 16bit PNG 彩色预览图")
+    ap.add_argument("--no-identify", action="store_true", help=tr("不做目标识别"))
+    ap.add_argument("--object", default=None, help=tr("手动指定目标名称, 例如 M42"))
+    ap.add_argument("--identify", default=None, help=tr("单独识别图片/RAW 文件, 不做堆栈"))
+    ap.add_argument("--sensor", default=None, help=tr("画幅, 如 APS-C / 全画幅 / M4/3"))
+    ap.add_argument("--focal", type=float, default=None, help=tr("焦距 mm"))
+    ap.add_argument("--crop", type=float, default=None, help=tr("裁切系数, 覆盖 --sensor"))
+    ap.add_argument("--catalog", default="auto", help=tr("星表: auto / 窄视场 / 中等 / 宽视场 / 全部尝试"))
+    ap.add_argument("--wb", action="store_true", help=tr("TIFF 输出时应用相机白平衡+色彩矩阵(线性 sRGB)"))
+    ap.add_argument("--preview-sat", type=float, default=1.0, help=tr("预览饱和度倍数, 默认 1.0"))
+    ap.add_argument("--png", action="store_true", help=tr("额外输出 16bit PNG 彩色预览图"))
     ap.add_argument("--out-kind", default="both", choices=["both", "linear", "stretch"],
-                    help="输出内容: both=线性+拉伸(默认) / linear=只线性 / stretch=只拉伸")
+                    help=tr("输出内容: both=线性+拉伸(默认) / linear=只线性 / stretch=只拉伸"))
     ap.add_argument("--no-stretch-out", action="store_true",
-                    help="等同于 --out-kind linear (兼容旧用法)")
-    ap.add_argument("--stretch-sat", type=float, default=1.18, help="拉伸图饱和度倍数")
-    ap.add_argument("--flatten", action="store_true", help="背景平整(叠加后): 去大尺度渐变")
-    ap.add_argument("--lp", action="store_true", help="逐帧去光污染(适合重度光害/无跟踪)")
+                    help=tr("等同于 --out-kind linear (兼容旧用法)"))
+    ap.add_argument("--stretch-sat", type=float, default=1.18, help=tr("拉伸图饱和度倍数"))
+    ap.add_argument("--flatten", action="store_true", help=tr("背景平整(叠加后): 去大尺度渐变"))
+    ap.add_argument("--lp", action="store_true", help=tr("逐帧去光污染(适合重度光害/无跟踪)"))
     ap.add_argument("--fast-warp", action="store_true",
-                    help="重采样用双线性(更快, 星点略软); 默认三次插值")
+                    help=tr("重采样用双线性(更快, 星点略软); 默认三次插值"))
     ap.add_argument("--denoise", default="off",
                     choices=["off", "light", "medium", "strong"],
-                    help="小波降噪强度: off/light(0.30)/medium(0.50)/strong(0.70)")
-    ap.add_argument("--denoise-scales", type=int, default=4, help="小波层数(默认 4)")
-    ap.add_argument("--jpg-max", type=int, default=2600, help="JPG 长边像素上限(默认 2600)")
-    ap.add_argument("--jpg-quality", type=int, default=92, help="JPG 质量(默认 92)")
+                    help=tr("小波降噪强度: off/light(0.30)/medium(0.50)/strong(0.70)"))
+    ap.add_argument("--denoise-scales", type=int, default=4, help=tr("小波层数(默认 4)"))
+    ap.add_argument("--jpg-max", type=int, default=2600, help=tr("JPG 长边像素上限(默认 2600)"))
+    ap.add_argument("--jpg-quality", type=int, default=92, help=tr("JPG 质量(默认 92)"))
     ap.add_argument("--star-mode", default="off", choices=["off", "reduce", "remove"],
-                    help="叠加后的星点处理: off / reduce(缩星) / remove(去星)")
-    ap.add_argument("--star-strength", type=float, default=0.85, help="星点处理强度 0~1")
+                    help=tr("叠加后的星点处理: off / reduce(缩星) / remove(去星)"))
+    ap.add_argument("--star-strength", type=float, default=0.85, help=tr("星点处理强度 0~1"))
     ap.add_argument("--no-type-opt", action="store_true",
-                    help="关闭按目标类型自动优化参数")
+                    help=tr("关闭按目标类型自动优化参数"))
     ap.add_argument("--lp-level", default="manual",
                     choices=["manual", "auto", "low", "mid", "high"],
-                    help="光污染傻瓜模式: auto=自动判断 / low / mid / high(覆盖去背景各项参数)")
+                    help=tr("光污染傻瓜模式: auto=自动判断 / low / mid / high(覆盖去背景各项参数)"))
     ap.add_argument("--rbf", type=float, nargs="?", const=2.0, default=0.0,
-                    help="叠加后 RBF 背景提取(薄板样条), 可给平滑量, 默认 2.0")
-    ap.add_argument("--bg2d", action="store_true", help="网格背景提取(强光害推荐, 无需模型)")
-    ap.add_argument("--bg2d-q", type=float, default=40.0, help="背景地板分位数(默认40; 越小越激进去光害, 越大越保守)")
-    ap.add_argument("--bg-protect", action="store_true", help="网格背景 + 结构保护(保住星云/银河)")
-    ap.add_argument("--bg-poly", type=int, default=0, help="二维多项式曲面去背景(1=平面, 2~4=曲面)")
+                    help=tr("叠加后 RBF 背景提取(薄板样条), 可给平滑量, 默认 2.0"))
+    ap.add_argument("--bg2d", action="store_true", help=tr("网格背景提取(强光害推荐, 无需模型)"))
+    ap.add_argument("--bg2d-q", type=float, default=40.0, help=tr("背景地板分位数(默认40; 越小越激进去光害, 越大越保守)"))
+    ap.add_argument("--bg-protect", action="store_true", help=tr("网格背景 + 结构保护(保住星云/银河)"))
+    ap.add_argument("--bg-poly", type=int, default=0, help=tr("二维多项式曲面去背景(1=平面, 2~4=曲面)"))
     ap.add_argument("--chroma-nr", type=float, default=0.0,
-                    help="旧的高斯色度降噪 sigma(0=关, 2~4 常用); 新算法用 --chroma-denoise")
+                    help=tr("旧的高斯色度降噪 sigma(0=关, 2~4 常用); 新算法用 --chroma-denoise"))
     ap.add_argument("--chroma-denoise", default="off",
                     choices=["off", "light", "medium", "strong"],
-                    help="小波色噪去除: off / light(0.35) / medium(0.55) / strong(0.75)")
-    ap.add_argument("--chroma-scales", type=int, default=3, help="色噪小波层数(默认 3)")
+                    help=tr("小波色噪去除: off / light(0.35) / medium(0.55) / strong(0.75)"))
+    ap.add_argument("--chroma-scales", type=int, default=3, help=tr("色噪小波层数(默认 3)"))
     ap.add_argument("--stack-mode", default=DEFAULT_STACK_MODE,
                     choices=["auto", "twopass", "onepass", "gpu"],
-                    help="叠加方式: auto(有 GPU 用 GPU) / twopass / onepass / gpu")
-    ap.add_argument("--lp-div", action="store_true", help="逐帧去光污染用除法(默认减法)")
-    ap.add_argument("--stretch", default=None, help="自动拉伸线性 TIFF(输入图片路径)")
-    ap.add_argument("--sat", type=float, default=1.18, help="拉伸后饱和度倍数, 默认 1.18")
-    ap.add_argument("--frame", default=None, help="给照片加白色名称边框(输入图片路径)")
-    ap.add_argument("--target", default=None, help="加边框时手动指定的目标名称")
-    ap.add_argument("--border", type=float, default=0.05, help="白边宽度(占短边比例, 默认 0.05)")
+                    help=tr("叠加方式: auto(有 GPU 用 GPU) / twopass / onepass / gpu"))
+    ap.add_argument("--lp-div", action="store_true", help=tr("逐帧去光污染用除法(默认减法)"))
+    ap.add_argument("--stretch", default=None, help=tr("自动拉伸线性 TIFF(输入图片路径)"))
+    ap.add_argument("--sat", type=float, default=1.18, help=tr("拉伸后饱和度倍数, 默认 1.18"))
+    ap.add_argument("--frame", default=None, help=tr("给照片加白色名称边框(输入图片路径)"))
+    ap.add_argument("--target", default=None, help=tr("加边框时手动指定的目标名称"))
+    ap.add_argument("--border", type=float, default=0.05, help=tr("白边宽度(占短边比例, 默认 0.05)"))
     a = ap.parse_args(argv)
 
 
@@ -3031,7 +3175,71 @@ def object_choices():
 # --------------------------------------------------------------------------
 # 图形界面
 # --------------------------------------------------------------------------
+
+# 双语：按显示标签查表的映射补上英文键
+def _alias_map(m):
+    for k, v in list(m.items()):
+        ek = EN.get(k)
+        if ek and ek not in m:
+            m[ek] = v
+
+
+for _m in (STACK_MODE_MAP, DENOISE_MAP, CHROMA_MAP, STAR_MODE_MAP,
+           OUT_KIND_MAP, LP_LEVEL_MAP):
+    _alias_map(_m)
+SENSORS = SENSORS + [(EN[lab], wh) for lab, wh in list(SENSORS) if lab in EN]
+CATALOGS = CATALOGS + [(fn, EN[lab], rng) for fn, lab, rng in list(CATALOGS) if lab in EN]
+if CATALOG_AUTO in EN:
+    CATALOG_AUTO = EN[CATALOG_AUTO]
+if SENSOR_NONE in EN:
+    SENSOR_NONE = EN[SENSOR_NONE]
+
+
+class _I18n(object):
+    def __init__(self):
+        self.items = []
+        self.combos = []
+
+    def bind_text(self, widget, zh):
+        self.items.append((widget, zh))
+
+    def bind_combo(self, widget, zh_values):
+        self.combos.append((widget, list(zh_values)))
+
+    def apply(self, root):
+        for w, zh in self.items:
+            try:
+                w.configure(text=tr(zh))
+            except Exception:
+                pass
+        for w, vals in self.combos:
+            try:
+                cur = w.get()
+                shown = [tr(v) for v in vals]
+                idx = None
+                for cand in (cur, tr(cur)):
+                    if cand in shown:
+                        idx = shown.index(cand)
+                        break
+                    if cand in vals:
+                        idx = vals.index(cand)
+                        break
+                w.configure(values=shown)
+                if idx is not None:
+                    w.set(shown[idx])
+            except Exception:
+                pass
+        try:
+            root.title(tr("深空堆栈工具  Deep-Sky Stacker"))
+        except Exception:
+            pass
+
+
+I18N = _I18n()
+
+
 def run_gui():
+    load_lang()
     import tkinter as tk
     from tkinter import ttk, filedialog, messagebox, scrolledtext
 
@@ -3039,6 +3247,23 @@ def run_gui():
     root.title("深空堆栈工具  Deep-Sky Stacker")
     root.geometry("960x800")
     root.minsize(880, 720)
+
+    # ---- 语言选择（放最上面，切换后即时生效）----
+    lang_bar = ttk.Frame(root)
+    lang_bar.pack(fill="x", padx=10, pady=(6, 0))
+    tk.Label(lang_bar, text="语言 / Language:").pack(side="left")
+    lang_var = tk.StringVar(value="English" if LANG == "en" else "中文")
+    w_lang = ttk.Combobox(lang_bar, textvariable=lang_var, width=10, state="readonly",
+                          values=["中文", "English"])
+    w_lang.pack(side="left", padx=(4, 0))
+
+    def _switch_lang(*_):
+        set_lang("en" if lang_var.get().startswith("English") else "zh")
+        save_lang()
+        lang_apply(root)
+        root.event_generate("<<LangChanged>>")
+
+    w_lang.bind("<<ComboboxSelected>>", _switch_lang)
 
     v_light = tk.StringVar()
     v_dark = tk.StringVar()
@@ -3138,7 +3363,7 @@ def run_gui():
     ttk.Label(opt, text="逐帧去光污染").grid(row=5, column=0, sticky="w", pady=2)
     w_lp = ttk.Checkbutton(opt, text="开", variable=v_lp)
     w_lp.grid(row=5, column=1, sticky="w", padx=(4, 0), pady=2)
-    w_lpmode = ttk.Combobox(opt, textvariable=v_lp_mode, width=5, state="readonly",
+    w_lpmode = ttk.Combobox(opt, textvariable=v_lp_mode, width=9, state="readonly",
                             values=["减法", "除法"])
     w_lpmode.grid(row=5, column=2, sticky="w", padx=(4, 8), pady=2)
     w_bg2d = ttk.Checkbutton(opt, text="Background2D", variable=v_bg2d)
@@ -3205,13 +3430,13 @@ def run_gui():
             except Exception:
                 pass
         if manual:
-            lp_hint.configure(text="请手动选择下面各项", foreground="#a55")
+            lp_hint.configure(text=tr("请手动选择下面各项"), foreground="#a55")
         else:
             lvl = LP_LEVEL_MAP.get(v_lp_level.get(), "auto")
             if lvl == "auto":
-                lp_hint.configure(text="自动判断素材光污染，参数由程序定", foreground="#2a7")
+                lp_hint.configure(text=tr("自动判断素材光污染，参数由程序定"), foreground="#2a7")
             else:
-                lp_hint.configure(text=LP_PRESET_TEXT.get(lvl, ""), foreground="#2a7")
+                lp_hint.configure(text=tr(LP_PRESET_TEXT.get(lvl, "")), foreground="#2a7")
     v_lp_level.trace_add("write", _lp_level_changed)
     _lp_level_changed()
 
@@ -3268,13 +3493,13 @@ def run_gui():
                 elif kind == "done":
                     btn_start.configure(state="normal")
                     btn_cancel.configure(state="disabled")
-                    status.configure(text="完成")
+                    status.configure(text=tr("完成"))
                     bar.configure(value=1000)
                     messagebox.showinfo("完成", payload)
                 elif kind == "fail":
                     btn_start.configure(state="normal")
                     btn_cancel.configure(state="disabled")
-                    status.configure(text="已停止")
+                    status.configure(text=tr("已停止"))
                     messagebox.showerror("出错", payload)
         except queue.Empty:
             pass
@@ -3333,7 +3558,7 @@ def run_gui():
         logbox.delete("1.0", "end")
         logbox.configure(state="disabled")
         bar.configure(value=0)
-        status.configure(text="准备中…")
+        status.configure(text=tr("准备中…"))
 
         def job():
             try:
@@ -3351,7 +3576,7 @@ def run_gui():
     def ident_worker(path, opts=None):
         try:
             btn_ident.configure(state="disabled")
-            ident_info.configure(text="识别中…")
+            ident_info.configure(text=tr("识别中…"))
             log("[识别] 正在处理: %s" % path)
             if opts:
                 log("[识别] 画幅=%s 焦距=%s 星表=%s" % (opts.get("sensor") or "未填",
@@ -3364,7 +3589,7 @@ def run_gui():
                 log("[识别] " + line)
             if saved:
                 log("[识别] 结果已写入: %s" % saved)
-            ident_info.configure(text="识别结果: %s" % (res.get("name") or "未知"))
+            ident_info.configure(text=tr("识别结果: %s") % (res.get("name") or "未知"))
             q.put(("ident", txt + ("\n\n已保存:\n%s" % saved if saved else "")))
         except Exception as e:
             q.put(("fail", "识别失败: %r" % (e,)))
@@ -3437,7 +3662,23 @@ def run_gui():
     btn_stretch.configure(command=stretch_start)
 
     btn_start.configure(command=start)
-    btn_cancel.configure(command=lambda: (cancel.set(), status.configure(text="正在取消…")))
+    btn_cancel.configure(command=lambda: (cancel.set(), status.configure(text=tr("正在取消…"))))
+
+    def _on_lang_changed(_e=None):
+        try:
+            _lp_level_changed()
+        except Exception:
+            pass
+        try:
+            status.configure(text=tr("就绪"))
+        except Exception:
+            pass
+
+    root.bind("<<LangChanged>>", _on_lang_changed)
+    lang_bind(root)
+    lang_apply(root)
+    lang_var.set("English" if LANG == "en" else "中文")
+
     root.after(120, drain)
     root.mainloop()
 

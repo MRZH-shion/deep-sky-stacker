@@ -52,6 +52,10 @@ CLI:
 DeepSkyStacker_CLI.exe --cli --lights "D:\lights" --darks "D:\darks" --flats "D:\flats" --threads 8
 ```
 
+**Interface language.** The dropdown at the top of the window switches Chinese and English
+live; the choice is stored in `settings.json` next to the program and reused next launch.
+On the command line use `--lang zh|en`, which also switches the log output and `--help`.
+
 ## 3. Inputs: lights, darks, flats
 
 **Lights** — your target frames. Files whose names contain `dark`, `flat` or `bias` are

@@ -8,6 +8,7 @@
 ## [未发布]
 
 ### 新增
+- 界面中英双语：GUI 顶部下拉框即时切换，命令行 `--lang zh|en`，选择存入 `settings.json`
 - 色噪去除：à trous 小波，仅处理色度通道（`--chroma-denoise`，轻/中/强）
 - 亮度降噪：à trous 小波（`--denoise`，轻/中/强）
 - 快速重采样开关（`--fast-warp`，双线性，约快 14%）

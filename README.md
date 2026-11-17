@@ -208,6 +208,9 @@ python src/astro_stack_gui.py --cli --lights "D:\photos\light" \
 
 界面只有三步：选亮场、选暗场平场、点开始堆栈。选项区的默认值适合大多数情况。
 
+**界面语言**：窗口顶部有「语言 / Language」下拉框，中英即时切换，选择记在
+`settings.json` 里，下次启动沿用。命令行用 `--lang zh|en`，日志和 `--help` 一起切换。
+
 命令行常用：
 
 ```bash

@@ -8,6 +8,8 @@ follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Bilingual interface (Chinese / English): dropdown at the top of the GUI switches live,
+  `--lang zh|en` on the command line, choice stored in `settings.json`
 
 - Chroma denoise: à trous wavelet, chrominance only (`--chroma-denoise`, light / medium /
   strong)
