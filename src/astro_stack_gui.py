@@ -36,6 +36,15 @@ except Exception:  # pragma: no cover
 from scipy import ndimage as ndi
 from scipy.spatial import cKDTree
 
+try:                                    # 拖拽支持（可选依赖，没装则跳过）
+    from tkinterdnd2 import TkinterDnD, DND_FILES
+    _HAS_DND = True
+except Exception:
+    TkinterDnD = None
+    DND_FILES = None
+    _HAS_DND = False
+
+
 # 叠加模式: twopass(原始) / onepass(CPU 优化) / gpu(GPU 加速) / auto(自动)
 DEFAULT_STACK_MODE = os.environ.get("STACKER_MODE", "auto")
 
@@ -167,6 +176,20 @@ EN.update({
     "未知": "unknown",
 })
 
+EN.update({
+    "开启逐帧局部归一化(实验性)": "enable per-frame local normalisation (experimental)",
+    "关闭质量加权叠加": "disable quality-weighted stacking",
+    "应用相机色彩矩阵(色彩校准)": "apply the camera colour matrix (colour calibration)",
+    "质量加权": "Quality weighting",
+    "局部归一化": "Local normalisation",
+    "色彩校准": "Colour calibration",
+    "质量加权: 权重 %.2f ~ %.2f (中位 %.2f)": "quality weights %.2f .. %.2f (median %.2f)",
+    "GPU 叠加暂不做局部归一化(只做质量加权)": "GPU stacking skips local normalisation (weights only)",
+    "色彩校准: 已应用相机色彩矩阵": "colour calibration: camera matrix applied",
+    "解码": "decode", "星点检测": "star detection", "配准": "register",
+    "叠加": "stack", "后处理": "post",
+})
+
 
 def _lang_path():
     base = (os.path.dirname(sys.executable) if getattr(sys, "frozen", False)
@@ -265,6 +288,96 @@ def lang_apply(root):
         pass
 
 
+# ---------------------------------------------------------------------------
+# 帧质量评分 / 局部归一化 / 色彩矩阵
+# ---------------------------------------------------------------------------
+def frame_quality(lum, n_stars):
+    """单帧质量: 返回 dict(n, bg, noise, sharp)。
+
+    bg/noise 取降采样亮度的中位数与 MAD；sharp 用高通能量近似（星点越锐越大）。
+    """
+    a = np.asarray(lum, np.float32)
+    med = float(np.median(a))
+    noise = 1.4826 * float(np.median(np.abs(a - med))) + 1e-6
+    hp = a - ndi.gaussian_filter(a, 6.0)
+    sharp = float(np.std(hp))
+    return dict(n=int(n_stars), bg=med, noise=noise, sharp=sharp)
+
+
+def frame_weights(quals):
+    """按质量给每帧一个权重（均值归一）。差的帧降权，好的帧升权。"""
+    n = len(quals)
+    if n == 0:
+        return np.array([], np.float32)
+    ns = np.array([max(1, q["n"]) for q in quals], np.float64)
+    nz = np.array([max(q["noise"], 1e-3) for q in quals], np.float64)
+    sh = np.array([max(q["sharp"], 1e-3) for q in quals], np.float64)
+    # 星点多的帧更可信；噪声低的帧更干净；锐度高说明对焦/透明度好
+    w = np.sqrt(ns / np.median(ns)) * (np.median(nz) / nz) * np.sqrt(sh / np.median(sh))
+    w = np.clip(w, 0.25, 3.0)
+    return (w / w.mean()).astype(np.float32)
+
+
+def ln_correct(plane, ref_mean, block=64, deg=1, max_gain=0.08, min_change=0.01):
+    """局部归一化（保守版）：拟合 ref ≈ a*plane + b，只做整体增益/偏移校正。
+
+    只在中部 70% 区域取样——旋转/平移后边缘是 nearest 填充，中位数不可靠，
+    拿边缘去拟合会把伪影当亮度差异。增益限制在 1±max_gain，变化太小直接跳过。
+    """
+    h, w = plane.shape
+    y0, y1 = int(h * 0.15), int(h * 0.85)
+    x0, x1 = int(w * 0.15), int(w * 0.85)
+    ny, nx = max(2, (y1 - y0) // block), max(2, (x1 - x0) // block)
+    ys = np.linspace(y0, y1 - 1, ny + 1).astype(int)
+    xs = np.linspace(x0, x1 - 1, nx + 1).astype(int)
+    ps, rs = [], []
+    for j in range(ny):
+        for i in range(nx):
+            blk = plane[ys[j]:ys[j + 1], xs[i]:xs[i + 1]]
+            rblk = ref_mean[ys[j]:ys[j + 1], xs[i]:xs[i + 1]]
+            if blk.size < 64:
+                continue
+            ps.append(np.median(blk))
+            rs.append(np.median(rblk))
+    ps = np.array(ps, np.float64)
+    rs = np.array(rs, np.float64)
+    if ps.size < 8:
+        return plane
+    ok = np.isfinite(ps) & np.isfinite(rs) & (ps > 0)
+    ps, rs = ps[ok], rs[ok]
+    if ps.size < 8:
+        return plane
+    hi = np.percentile(rs, 80)          # 只用偏暗的块，避开星云
+    keep = rs <= hi
+    if keep.sum() >= 8:
+        ps, rs = ps[keep], rs[keep]
+    A = np.polyfit(ps, rs, min(deg, 1))
+    a, b = float(A[0]), float(A[1])
+    if not np.isfinite(a) or not np.isfinite(b) or a <= 0:
+        return plane
+    a = float(np.clip(a, 1.0 - max_gain, 1.0 + max_gain))
+    ref_med = float(np.median(rs))
+    b = float(np.clip(b, -0.03 * ref_med, 0.03 * ref_med))
+    if abs(a - 1.0) < min_change and abs(b) < 1.0:
+        return plane
+    return ((plane - b) / a).astype(np.float32)
+
+
+def color_balance(rgb, q=30.0, max_gain=2.0):
+    """色彩校准（背景中性化）：把天空背景拉到三通道一致，返回 (rgb, 三通道增益)。
+
+    比乘相机色彩矩阵稳：只用背景分位数，不会产生负值，也不依赖具体机型。
+    """
+    x = np.asarray(rgb, np.float32)
+    sub = x[::4, ::4]
+    bg = np.array([np.percentile(sub[:, :, c], q) for c in range(3)], np.float64)
+    bg = np.maximum(bg, 1e-3)
+    ref = float(np.mean(bg))
+    g = np.clip(ref / bg, 1.0 / max_gain, max_gain)
+    out = np.clip(x * g.astype(np.float32)[None, None, :], 0, None)
+    return out.astype(np.float32), g
+
+
 def _warp_order(o):
     """重采样阶数：3=三次(Catmull-Rom/样条，默认)，1=双线性(快，略软)。"""
     try:
@@ -280,7 +393,18 @@ def decode(path):
         s = raw.sizes
         crop = (int(s.crop_top_margin), int(s.crop_left_margin),
                 int(s.crop_height), int(s.crop_width))
-    return img, dict(wb=wb, crop=crop)
+        try:
+            xyz = np.array(raw.rgb_xyz_matrix, float)[:3, :]   # 相机 RGB -> XYZ
+            xyz2srgb = np.array([[3.2404542, -1.5371385, -0.4985314],
+                                 [-0.9692660, 1.8760108, 0.0415560],
+                                 [0.0556434, -0.2040259, 1.0572252]], float)
+            m = xyz2srgb @ xyz
+            v = m.sum(axis=1)
+            v[np.abs(v) < 1e-6] = 1.0
+            rgb_cam = (m / v[:, None]).astype(np.float64)       # 中性灰保持中性
+        except Exception:
+            rgb_cam = None
+    return img, dict(wb=wb, crop=crop, rgb_cam=rgb_cam)
 
 
 def binned_luminance(a):
@@ -1909,6 +2033,10 @@ class Pipeline(object):
     def __init__(self, opts, log=None, progress=None, cancel=None):
         self.o = opts
         self._log = log or (lambda m: None)
+        self._weights = None
+        self._quals = None
+        self._rgb_cam = None
+        self._t0 = None
         self._prog = progress or (lambda frac, msg: None)
         self.cancel = cancel or threading.Event()
         self.stats = {}
@@ -1921,8 +2049,30 @@ class Pipeline(object):
     def log(self, msg):
         self._log(tr(msg))
 
+    STAGES = ((0.00, "解码"), (0.10, "星点检测"), (0.40, "配准"),
+              (0.48, "叠加"), (0.94, "后处理"))
+
+    def _stage_of(self, frac):
+        name = self.STAGES[0][1]
+        for lim, nm in self.STAGES:
+            if frac >= lim:
+                name = nm
+        return name
+
     def prog(self, frac, msg=""):
-        self._prog(float(frac), tr(msg) if msg else msg)
+        frac = float(frac)
+        text = tr(msg) if msg else ""
+        if self._t0 is None:
+            self._t0 = time.time()
+        stage = self._stage_of(frac)
+        eta = ""
+        if 0.02 < frac < 0.995:
+            el = time.time() - self._t0
+            left = el * (1.0 - frac) / max(frac, 1e-6)
+            if left > 1:
+                eta = " · 剩余 %d:%02d" % (int(left // 60), int(left % 60))
+        head = "[%s] " % stage if stage else ""
+        self._prog(frac, head + text + eta)
 
     def check(self):
         if self.cancel.is_set():
@@ -2016,6 +2166,8 @@ class Pipeline(object):
         warm = min(25, max(5, nframes // max(nthreads, 1)))
 
         warp_ord = _warp_order(o)
+        use_ln = bool(getattr(o, "local_norm", False))
+        wts = self._weights
 
         def worker(ci):
             S = [np.zeros(s_, np.float32) for s_ in shapes]
@@ -2044,6 +2196,7 @@ class Pipeline(object):
                     w = ndi.affine_transform(pl, Mrc, offset=off, output_shape=pl.shape,
                                              order=warp_ord, mode='nearest',
                                              prefilter=(warp_ord > 1))
+                    wf = float(wts[pos]) if wts is not None else 1.0
                     if k > warm:
                         # 均值/σ 每 8 帧刷新一次：在线统计变化很慢，对剔除结果影响
                         # 可忽略，但省掉每帧 4 个平面 × 6M 像素的除法/开方/临时数组
@@ -2053,13 +2206,15 @@ class Pipeline(object):
                             msd[pi] = (m, np.maximum(np.sqrt(np.maximum(var, 0)), 1e-3))
                             msd_k[pi] = k
                         m, sd = msd[pi]
+                        if use_ln:
+                            w = ln_correct(w, m)
                         gm = np.abs(w - m) <= o.kappa * sd
-                        S[pi] += np.where(gm, w, 0.0)
-                        C[pi] += gm
+                        S[pi] += np.where(gm, w * wf, 0.0)
+                        C[pi] += gm * wf
                         Q[pi] += np.where(gm, w, 0.0).astype(np.float64) ** 2
                     else:
-                        S[pi] += w
-                        C[pi] += 1.0
+                        S[pi] += w * wf
+                        C[pi] += wf
                         Q[pi] += w.astype(np.float64) ** 2
                 with plock:
                     pdone[0] += 1
@@ -2155,6 +2310,8 @@ class Pipeline(object):
             return a
 
         warp_ord = _warp_order(o)
+        if getattr(o, "local_norm", False):
+            self.log("GPU 叠加暂不做局部归一化(只做质量加权)")
         nworker = max(2, min(6, int(o.threads)))
         k = 0
         with ThreadPoolExecutor(max_workers=nworker) as ex:
@@ -2172,6 +2329,7 @@ class Pipeline(object):
                 nxt = next(it, None)
                 if nxt is not None:
                     pending.append((nxt, ex.submit(prepare, nxt)))
+                wf = float(self._weights[pos]) if self._weights is not None else 1.0
                 Mxy = Ms[pos]
                 Mrc = np.array([[Mxy[1, 1], Mxy[1, 0]], [Mxy[0, 1], Mxy[0, 0]]], np.float32)
                 trc = np.array([ts[pos][1], ts[pos][0]], np.float32) * 2.0
@@ -2187,12 +2345,12 @@ class Pipeline(object):
                         var = Q[pi] / cp.maximum(C[pi], 1.0) - m.astype(cp.float64) ** 2
                         sd = cp.sqrt(cp.maximum(var, 0)).astype(cp.float32)
                         gm = cp.abs(w - m) <= o.kappa * cp.maximum(sd, 1e-3)
-                        S[pi] += cp.where(gm, w, 0.0)
-                        C[pi] += gm
+                        S[pi] += cp.where(gm, w * wf, 0.0)
+                        C[pi] += gm * wf
                         Q[pi] += cp.where(gm, w, 0.0).astype(cp.float64) ** 2
                     else:
-                        S[pi] += w
-                        C[pi] += 1.0
+                        S[pi] += w * wf
+                        C[pi] += wf
                         Q[pi] += w.astype(cp.float64) ** 2
                 if k % 10 == 0:
                     self.prog(0.48 + 0.46 * k / nframes, "叠加(GPU) %d/%d" % (k, nframes))
@@ -2266,6 +2424,7 @@ class Pipeline(object):
         stars = np.full((n, 400, 2), np.nan, np.float32)
         lock = threading.Lock()
         done = [0]
+        quals = [None] * n
 
         def work(i, path):
             img, meta = decode(path)
@@ -2273,6 +2432,7 @@ class Pipeline(object):
                 self._wb = np.array(meta["wb"], float)
                 self._crop = tuple(meta["crop"])
                 self._raw_shape = img.shape
+                self._rgb_cam = meta.get("rgb_cam")
             a = img.astype(np.float32)
             del img
             if dark is not None:
@@ -2281,6 +2441,7 @@ class Pipeline(object):
                 a /= flat
             xy, _ = detect_stars(binned_luminance(a), max_stars=400)
             stars[i, :len(xy)] = xy
+            quals[i] = frame_quality(binned_luminance(a), len(xy))
             with lock:
                 done[0] += 1
                 self.prog(0.10 + 0.30 * done[0] / n, "星点检测 %d/%d" % (done[0], n))
@@ -2288,6 +2449,20 @@ class Pipeline(object):
         self._run_threaded(lambda it: work(*it), list(enumerate(lights)))
         good = np.array([np.isfinite(stars[i, :, 0]).sum() >= 20 for i in range(n)])
         self.log("星点检测完成, 有效帧 %d/%d" % (int(good.sum()), n))
+
+        self._quals = quals
+        if getattr(o, "frame_weight", True):
+            try:
+                qs = [q if q else dict(n=1, bg=0.0, noise=1.0, sharp=1.0) for q in quals]
+                self._weights = frame_weights(qs)
+                self.log("质量加权: 权重 %.2f ~ %.2f (中位 %.2f)"
+                         % (float(self._weights.min()), float(self._weights.max()),
+                            float(np.median(self._weights))))
+            except Exception as e:
+                self._weights = None
+                self.log("质量加权失败, 退回等权: %r" % (e,))
+        else:
+            self._weights = None
 
         # ---- 目标识别(可选) ----
         self.object_name = None
@@ -2441,6 +2616,8 @@ class Pipeline(object):
 
         def stack_pass(clip, mean=None, sd=None):
             warp_ord = _warp_order(o)
+            use_ln = bool(getattr(o, "local_norm", False))
+            wts = self._weights
             nthreads = max(1, int(o.threads))
             chunks = [c for c in np.array_split(idx, nthreads)]
             accs = [dict(sum=[np.zeros(s, np.float32) for s in shapes],
@@ -2462,6 +2639,7 @@ class Pipeline(object):
                     Mxy = Ms[pos]
                     Mrc = np.array([[Mxy[1, 1], Mxy[1, 0]], [Mxy[0, 1], Mxy[0, 0]]])
                     trc = np.array([ts[pos][1], ts[pos][0]]) * 2.0
+                    wf = float(wts[pos]) if wts is not None else 1.0
                     for pi, (oy, ox) in enumerate(PLANES):
                         oo = np.array([oy, ox], np.float64)
                         off = (Mrc @ oo + trc - oo) * 0.5
@@ -2470,11 +2648,13 @@ class Pipeline(object):
                                                  order=warp_ord, mode='nearest',
                                                  prefilter=(warp_ord > 1))
                         if clip:
+                            if use_ln:
+                                w = ln_correct(w, mean[pi])
                             gm = np.abs(w - mean[pi]) <= o.kappa * sd[pi]
-                            accs[ci]["sum"][pi] += np.where(gm, w, 0.0)
-                            accs[ci]["cnt"][pi] += gm
+                            accs[ci]["sum"][pi] += np.where(gm, w * wf, 0.0)
+                            accs[ci]["cnt"][pi] += gm * wf
                         else:
-                            accs[ci]["sum"][pi] += w
+                            accs[ci]["sum"][pi] += w * wf
                             accs[ci]["sq"][pi] += w.astype(np.float64) ** 2
                     with plock:
                         pdone[0] += 1
@@ -2520,6 +2700,14 @@ class Pipeline(object):
 
         self.log("去马赛克 ...")
         rgb = self._demosaic(stacked)
+
+        if getattr(o, "color_cal", False):
+            try:
+                rgb, _g = color_balance(rgb)
+                self.log("色彩校准: 背景中性化 增益 R×%.3f G×%.3f B×%.3f"
+                         % (_g[0], _g[1], _g[2]))
+            except Exception as e:
+                self.log("色彩校准失败: %r" % (e,))
         del stacked
         self.prog(0.97, "去马赛克完成")
 
@@ -2732,6 +2920,7 @@ class Pipeline(object):
         return out
 
     def _demosaic(self, st):
+        """Bayer 四个平面插值成 RGB。开了 --color-cal 时再乘相机色彩矩阵。"""
         y0, x0, hh, ww = self._crop
         pr, pc = hh // 2, ww // 2
         ry, rx = y0 // 2, x0 // 2
@@ -2740,7 +2929,8 @@ class Pipeline(object):
         G = 0.5 * (self._bilinear_2x(planes[1], 0, 1, H, W) + self._bilinear_2x(planes[2], 1, 0, H, W))
         Rf = self._bilinear_2x(planes[0], 0, 0, H, W)
         Bf = self._bilinear_2x(planes[3], 1, 1, H, W)
-        return np.stack([Rf, G, Bf], axis=2)
+        rgb = np.stack([Rf, G, Bf], axis=2)
+        return rgb
 
     def _auto_crop(self, Ms, ts, ok, W, H, mode):
         if not mode:
@@ -2966,6 +3156,9 @@ def run_cli(argv):
     ap.add_argument("--stretch-sat", type=float, default=1.18, help=tr("拉伸图饱和度倍数"))
     ap.add_argument("--flatten", action="store_true", help=tr("背景平整(叠加后): 去大尺度渐变"))
     ap.add_argument("--lp", action="store_true", help=tr("逐帧去光污染(适合重度光害/无跟踪)"))
+    ap.add_argument("--ln", action="store_true", help=tr("开启逐帧局部归一化(实验性)"))
+    ap.add_argument("--no-weight", action="store_true", help=tr("关闭质量加权叠加"))
+    ap.add_argument("--color-cal", action="store_true", help=tr("应用相机色彩矩阵(色彩校准)"))
     ap.add_argument("--fast-warp", action="store_true",
                     help=tr("重采样用双线性(更快, 星点略软); 默认三次插值"))
     ap.add_argument("--denoise", default="off",
@@ -3070,6 +3263,9 @@ def run_cli(argv):
     o.lp_level = a.lp_level
     o.type_opt = not bool(a.no_type_opt)
     o.warp_order = 1 if a.fast_warp else 3
+    o.local_norm = bool(a.ln)
+    o.frame_weight = not bool(a.no_weight)
+    o.color_cal = bool(a.color_cal)
     o.denoise = {"off": 0.0, "light": 0.30, "medium": 0.50, "strong": 0.70}.get(a.denoise, 0.0)
     o.denoise_scales = int(a.denoise_scales)
     o.jpg_max = int(a.jpg_max)
@@ -3274,12 +3470,36 @@ class _I18n(object):
 I18N = _I18n()
 
 
+def _walk_all(w):
+    yield w
+    for c in w.winfo_children():
+        yield from _walk_all(c)
+
+
+def _drop_into(var, data):
+    """把拖进来的路径写进输入框：文件夹直接填，文件取其所在目录。"""
+    raw = str(data or "").strip()
+    if raw.startswith("{") and raw.endswith("}"):
+        raw = raw[1:-1]
+    first = raw.split("} {")[0].strip("{}").strip()
+    if not first:
+        return
+    p = os.path.abspath(first)
+    if os.path.isfile(p):
+        p = os.path.dirname(p)
+    try:
+        var.set(p)
+    except Exception:
+        pass
+
+
+
 def run_gui():
     load_lang()
     import tkinter as tk
     from tkinter import ttk, filedialog, messagebox, scrolledtext
 
-    root = tk.Tk()
+    root = TkinterDnD.Tk() if _HAS_DND else tk.Tk()
     root.title("深空堆栈工具  Deep-Sky Stacker")
     root.geometry("960x800")
     root.minsize(880, 720)
@@ -3313,6 +3533,9 @@ def run_gui():
     v_png = tk.BooleanVar(value=False)
     v_out_kind = tk.StringVar(value="线性 + 拉伸（都生成）")
     v_type_opt = tk.BooleanVar(value=True)
+    v_ln = tk.BooleanVar(value=False)
+    v_weight = tk.BooleanVar(value=True)
+    v_colorcal = tk.BooleanVar(value=False)
     v_lp_level = tk.StringVar(value="自动判断（推荐）")
     v_star_mode = tk.StringVar(value="不处理")
     v_star_strength = tk.DoubleVar(value=0.85)
@@ -3450,6 +3673,12 @@ def run_gui():
         row=8, column=2, columnspan=2, sticky="w", pady=(8, 2))
     ttk.Checkbutton(opt, text="按目标类型优化", variable=v_type_opt).grid(
         row=13, column=0, columnspan=3, sticky="w", pady=2)
+    ttk.Checkbutton(opt, text="质量加权", variable=v_weight).grid(
+        row=14, column=0, columnspan=2, sticky="w", pady=2)
+    ttk.Checkbutton(opt, text="局部归一化", variable=v_ln).grid(
+        row=14, column=2, columnspan=2, sticky="w", pady=2)
+    ttk.Checkbutton(opt, text="色彩校准", variable=v_colorcal).grid(
+        row=14, column=4, columnspan=2, sticky="w", pady=2)
     ttk.Checkbutton(opt, text="TIFF 白平衡版", variable=v_wb).grid(
         row=8, column=4, columnspan=2, sticky="w", pady=(8, 2))
     ttk.Checkbutton(opt, text="额外输出 16bit PNG", variable=v_png).grid(
@@ -3563,6 +3792,9 @@ def run_gui():
         o.out_kind = OUT_KIND_MAP.get(v_out_kind.get(), "both")
         o.flatten = bool(v_flatten.get())
         o.type_opt = bool(v_type_opt.get())
+        o.local_norm = bool(v_ln.get())
+        o.frame_weight = bool(v_weight.get())
+        o.color_cal = bool(v_colorcal.get())
         o.star_mode = STAR_MODE_MAP.get(v_star_mode.get(), "off")
         o.star_strength = float(v_star_strength.get())
         o.warp_order = 1 if v_fast_warp.get() else 3
@@ -3711,6 +3943,19 @@ def run_gui():
             pass
 
     root.bind("<<LangChanged>>", _on_lang_changed)
+    # ---- 拖拽文件夹 / 文件（装了 tkinterdnd2 才有）----
+    if _HAS_DND:
+        entries = [w for w in _walk_all(root) if w.winfo_class() == "TEntry"]
+        targets = list(zip(entries, (v_light, v_dark, v_flat, v_out)))
+        for ent, var in targets:
+            try:
+                ent.drop_target_register(DND_FILES)
+                ent.dnd_bind("<<Drop>>", lambda e, v=var: _drop_into(v, e.data))
+            except Exception:
+                pass
+        status.configure(text="就绪（可以把文件夹拖到输入框）" if LANG != "en"
+                         else "Ready (drop a folder onto a field)")
+
     lang_bind(root)
     lang_apply(root)
     lang_var.set("English" if LANG == "en" else "中文")

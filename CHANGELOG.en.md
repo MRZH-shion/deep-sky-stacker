@@ -8,6 +8,10 @@ follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Quality-weighted stacking (on), per-frame local normalisation (off, experimental),
+  colour calibration (background neutralisation)
+- Drag-and-drop folders (optional tkinterdnd2); staged progress with ETA
+- Packaging switched to onedir: faster startup, cleaner LibRaw LGPL compliance
 - Bilingual interface (Chinese / English): dropdown at the top of the GUI switches live,
   `--lang zh|en` on the command line, choice stored in `settings.json`
 

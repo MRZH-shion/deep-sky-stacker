@@ -101,6 +101,27 @@ GPU mode it only controls decode prefetch. Speed only, no effect on image qualit
 All three give equivalent images; only speed differs. The GPU entry disappears when no
 GPU is detected.
 
+**Quality weighting (default on)** — stacking is not a plain average: every frame gets a
+weight from its star count, background noise and star sharpness, normalised to mean 1 (the log
+prints the range). Weaker frames are pushed down, to at most a quarter weight. `--no-weight`
+turns it off.
+
+**Local normalisation (default off, experimental)** — for frames that differ in transparency,
+thin cloud or light pollution. Block medians from the central 70% of the frame are fitted
+against the reference; gain is clamped to 1+/-8% and changes under 1% are skipped. Measured on
+uniform data it costs 2-3% noise, hence off by default. Enable with `--ln` or the checkbox.
+GPU stacking applies weights only.
+
+**Colour calibration (default off)** — background neutralisation: per-channel gains from
+background percentiles pull the sky to neutral grey. On our Orion data G/R went from 1.12 to
+1.01 and G/B from 1.08 to 1.01. Gains are clamped to 0.5-2x, so no negatives. `--color-cal`.
+
+**Drag and drop** — with `tkinterdnd2` installed, folders or files can be dropped onto the
+lights/darks/flats/output fields. Without it everything works, just without the shortcut.
+
+**Staged progress** — the progress line shows the stage and an ETA, e.g.
+`[stack] 120/1050 · ETA 8:32`. Stages: decode → star detection → register → stack → post.
+
 **Fast resampling (default off, `--fast-warp`)** — cubic interpolation is the default;
 enabling this switches to bilinear. Measured on 60 frames: 126.5 s → 111.1 s (14% faster),
 at the cost of softer stars (median star area 8.0 → 9.0 px) and slightly lower noise

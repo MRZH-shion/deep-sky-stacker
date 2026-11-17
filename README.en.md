@@ -196,13 +196,17 @@ From the [Releases](https://github.com/MRZH-shion/deep-sky-stacker/releases) pag
 
 | File | What it is |
 |---|---|
-| `DeepSkyStacker.exe` | GUI version, double-click to run |
-| `DeepSkyStacker_CLI.exe` | command line version for batches and scripts |
-| `dsso_narrow.npz` | narrow-field star database (optional, ~35 MB, same folder to enable identification) |
+| `DeepSkyStacker-onedir.zip` | GUI version, unzip and run `DeepSkyStacker.exe` |
+| `DeepSkyStacker_CLI-onedir.zip` | command line version, unzip and run `DeepSkyStacker_CLI.exe` |
+| `dsso_narrow.npz` | narrow-field star database (optional, ~35 MB, put it next to the exe) |
 
-Put both exes in one folder with an **ASCII-only path** (CUDA's runtime compiler fails on
-non-ASCII paths), drop the star database next to them if you want identification. Nothing to
-install; deleting the folder is the uninstall.
+Unzip into an **ASCII-only path** (CUDA's runtime compiler fails on non-ASCII paths) and drop
+the star database next to the exe if you want identification. Nothing to install; deleting the
+folder is the uninstall.
+
+Chose onedir over onefile: faster startup (no 100+ MB extraction to a temp folder on every
+launch) and `raw_r.dll` sits visibly in `_internal\`, which makes the LibRaw LGPL obligation
+easier to satisfy.
 
 The interface language switches in the dropdown at the top of the window (Chinese / English);
 on the command line use `--lang zh|en`.
