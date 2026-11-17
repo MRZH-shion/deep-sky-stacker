@@ -251,6 +251,8 @@ GPU 模式需要额外的 `gpu_runtime/`（CuPy + CUDA 运行库），仓库不�
 | 示例图（`docs/images/`） | 作者本人拍摄，**CC BY-NC 4.0**（署名，**禁止商用**） |
 | 第三方库 | 见 `THIRD_PARTY_NOTICES.md` 与 `LICENSES/` |
 
+`LICENSE` 只放 MIT 正文，各部分的界限写在 [`LICENSES/README.md`](LICENSES/README.md)。
+
 参与贡献请看 [`CONTRIBUTING.md`](CONTRIBUTING.md)，行为准则见 [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)，
 安全策略见 [`SECURITY.md`](SECURITY.md)，版本变化见 [`CHANGELOG.md`](CHANGELOG.md)。
 
