@@ -183,6 +183,26 @@ deep-sky-stacker/
 
 ## 安装
 
+### 方式一：直接用打好的 exe（不用装 Python）
+
+到 [Releases](https://github.com/MRZH-shion/deep-sky-stacker/releases) 页面下载：
+
+| 文件 | 用途 |
+|---|---|
+| `DeepSkyStacker.exe` | 图形界面版，双击就用 |
+| `DeepSkyStacker_CLI.exe` | 命令行版，适合批处理和脚本 |
+| `dsso_narrow.npz` | 窄视场星表（可选，放同目录才能识别目标，约 35 MB） |
+
+两个 exe 放到一个**全英文路径**的文件夹里（路径含中文时 CUDA 运行时编译会失败），
+星表想用就放同目录。不需要安装，删掉文件夹就是卸载。
+
+界面语言在窗口顶部下拉框切，中英都有；命令行加 `--lang zh|en`。
+
+GPU 模式需要额外准备 `gpu_runtime/` 目录（CuPy + CUDA 运行库），见 `docs/README.txt`；
+没有这个目录时自动用 CPU 叠加，功能不缺。
+
+### 方式二：从源码跑
+
 ```bash
 git clone https://github.com/MRZH-shion/deep-sky-stacker.git
 cd deep-sky-stacker
