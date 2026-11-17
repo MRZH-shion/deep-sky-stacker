@@ -19,8 +19,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install numpy scipy rawpy tifffile pillow pyflakes
-          # tetra3 不在 PyPI 主索引时从源码装（见 requirements.txt 注释）
-          pip install tetra3 || pip install git+https://github.com/esa/tetra3@master
+          # tetra3 没有发布到 PyPI，只能从源码装
+          pip install git+https://github.com/esa/tetra3@master
 
       - name: 语法与静态检查
         run: |
@@ -32,20 +32,33 @@ jobs:
           python src/astro_stack_gui.py --selftest
           python src/astro_stack_gui.py --help
 
-      - name: 许可与合规自查
+      - name: 许可自查
         shell: bash
         run: |
-          # data/ 之外的代码与文档不得出现 MIT 以外的许可声明
+          # 只扫代码：src/ 与 tools/ 下的 .py 不允许出现 GPL/AGPL 之类的许可字样，
+          # 文档里写着"不收 GPL 依赖"是正常的，不参与判定。
           python - <<'PY'
           import pathlib, sys
           bad = []
-          for p in pathlib.Path(".").rglob("*"):
-              if p.suffix.lower() in (".py", ".md", ".txt") and "LICENSES" not in str(p):
-                  t = p.read_text(encoding="utf-8", errors="ignore")
-                  for token in ("GNU General Public License", "AGPL", "proprietary"):
-                      if token.lower() in t.lower() and p.name not in ("THIRD_PARTY_NOTICES.md", "NOTICE.md", "LICENSE"):
-                          bad.append(f"{p}: {token}")
+          for p in list(pathlib.Path("src").rglob("*.py")) + list(pathlib.Path("tools").rglob("*.py")):
+              t = p.read_text(encoding="utf-8", errors="ignore").lower()
+              for token in ("gnu general public license", "agpl", "proprietary"):
+                  if token in t:
+                      bad.append(f"{p}: {token}")
           for b in bad:
               print(b)
           sys.exit(1 if bad else 0)
+          PY
+
+      - name: 仓库体积自查
+        shell: bash
+        run: |
+          # 单个文件超过 50 MB 会让 git 变慢，星表应当走 Release
+          python - <<'PY'
+          import pathlib, sys
+          big = [p for p in pathlib.Path(".").rglob("*")
+                 if p.is_file() and ".git/" not in str(p) and p.stat().st_size > 50 * 1024 * 1024]
+          for p in big:
+              print(f"{p}: {p.stat().st_size / 1048576:.1f} MB")
+          sys.exit(1 if big else 0)
           PY
