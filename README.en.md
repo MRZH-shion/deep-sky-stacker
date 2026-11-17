@@ -194,11 +194,18 @@ Also in field: NGC1980, NGC1981, M43, NGC1977
 
 From the [Releases](https://github.com/MRZH-shion/deep-sky-stacker/releases) page:
 
-| File | What it is |
-|---|---|
-| `DeepSkyStacker-onedir.zip` | GUI version, unzip and run `DeepSkyStacker.exe` |
-| `DeepSkyStacker_CLI-onedir.zip` | command line version, unzip and run `DeepSkyStacker_CLI.exe` |
-| `dsso_narrow.npz` | narrow-field star database (optional, ~35 MB, put it next to the exe) |
+| File | What it is | Best for |
+|---|---|---|
+| `DeepSkyStacker-onedir.zip` | GUI, unzip and run `DeepSkyStacker.exe` | **recommended**: fast start, `raw_r.dll` visible and replaceable |
+| `DeepSkyStacker_CLI-onedir.zip` | CLI, unzip and run `DeepSkyStacker_CLI.exe` | batch runs, folder is fine |
+| `DeepSkyStacker.exe` | GUI, single file | you just want one exe to copy around |
+| `DeepSkyStacker_CLI.exe` | CLI, single file | calling from scripts |
+| `dsso_narrow.npz` | narrow-field star database (optional, ~35 MB, next to the exe) | object identification |
+
+All four forms are the same build; only packaging differs. The zip versions start faster,
+the single-file versions extract to a temp folder on every launch. **GPU users**: copy
+`gpu_runtime/` next to the exe (or into the unzipped `DeepSkyStacker/` folder), otherwise it
+falls back to CPU stacking.
 
 Unzip into an **ASCII-only path** (CUDA's runtime compiler fails on non-ASCII paths) and drop
 the star database next to the exe if you want identification. Nothing to install; deleting the

@@ -187,11 +187,17 @@ deep-sky-stacker/
 
 到 [Releases](https://github.com/MRZH-shion/deep-sky-stacker/releases) 页面下载：
 
-| 文件 | 用途 |
-|---|---|
-| `DeepSkyStacker-onedir.zip` | 图形界面版，解压后双击 `DeepSkyStacker.exe` |
-| `DeepSkyStacker_CLI-onedir.zip` | 命令行版，解压后用 `DeepSkyStacker_CLI.exe` |
-| `dsso_narrow.npz` | 窄视场星表（可选，放 exe 同目录才能识别目标，约 35 MB） |
+| 文件 | 用途 | 适合谁 |
+|---|---|---|
+| `DeepSkyStacker-onedir.zip` | 图形界面版，解压后双击 `DeepSkyStacker.exe` | **推荐**：启动快，`raw_r.dll` 可直接查看/替换 |
+| `DeepSkyStacker_CLI-onedir.zip` | 命令行版，解压后用 `DeepSkyStacker_CLI.exe` | 需要批量跑、又不介意文件夹 |
+| `DeepSkyStacker.exe` | 图形界面单文件版 | 只想拷一个 exe 走 |
+| `DeepSkyStacker_CLI.exe` | 命令行单文件版 | 脚本里调用，单文件最省事 |
+| `dsso_narrow.npz` | 窄视场星表（可选，放 exe 同目录才能识别目标，约 35 MB） | 想用目标识别 |
+
+四种形态功能完全一致，只是打包方式不同：zip 版解压即用、启动快；单文件版是 exe，
+每次启动会先解压到临时目录。**GPU 用户注意**：要把 `gpu_runtime/` 复制到 exe（或解压后的
+`DeepSkyStacker/`）同目录，否则会走 CPU 叠加。
 
 解压到**全英文路径**的目录（路径含中文时 CUDA 运行时编译会失败），星表放 exe 同目录。
 不需要安装，删掉文件夹就是卸载。
