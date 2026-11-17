@@ -1,5 +1,7 @@
 # 安全策略（Security Policy）
 
+**语言：中文 | [English](SECURITY.en.md)**
+
 ## 支持的版本
 
 | 版本 | 是否接受安全修复 |

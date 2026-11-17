@@ -1,9 +1,11 @@
-# 示例图说明
+# 示例图说明 / Example images
+
+## 中文
 
 本目录下的图片全部由**本仓库作者本人**用 Sony a6400 + Tamron 18-300 mm 拍摄，
 并用本项目堆栈生成，不包含任何第三方素材。
 
-## 许可：CC BY-NC 4.0（禁止商业使用）
+### 许可：CC BY-NC 4.0（禁止商业使用）
 
 | 允许 | 不允许 |
 |---|---|
@@ -16,7 +18,7 @@
   <https://creativecommons.org/licenses/by-nc/4.0/>
 - **商业授权**：请单独联系作者
 
-## 文件清单
+### 文件清单
 
 | 文件 | 内容 | 数据来源 |
 |---|---|---|
@@ -31,3 +33,39 @@
 | `stretch.jpg` | 线性 vs 自动拉伸 | 猎户座素材 1050 帧 |
 | `warp_compare.jpg` | 三次 vs 双线性重采样 | 猎户座素材 60 帧 |
 | `name_border.jpg` | 加白边成品 | 猎户座素材 1050 帧 |
+
+---
+
+## English
+
+Every image here was **taken and stacked by the author** with a Sony a6400 and a Tamron
+18-300 mm; no third-party material is included.
+
+### Licence: CC BY-NC 4.0 (no commercial use)
+
+| Allowed | Not allowed |
+|---|---|
+| Re-share, quote, distribute | **Any commercial use** (product pages, paid courses, marketing, paid software screenshots) |
+| Non-commercial articles, tutorials, papers, personal blogs | Resale, NFTs, printed merchandise |
+| Publish modified versions (non-commercial) | Removing the attribution |
+
+- **Attribution**: `MRZH / Deep-Sky Stacker (CC BY-NC 4.0)`
+- **Full text**: `../../LICENSES/CC-BY-NC-4.0.txt`,
+  <https://creativecommons.org/licenses/by-nc/4.0/>
+- **Commercial licensing**: contact the author
+
+### Files
+
+| File | Contents | Source data |
+|---|---|---|
+| `gui.png` | program screenshot | application screenshot |
+| `stack_result.jpg` | M42 result, all 1050 frames | Orion dataset |
+| `calibration.jpg` | dark/flat calibration before and after | Orion, 60 frames |
+| `bg_removal.jpg` | light pollution removal before and after | ISO400 Milky Way, 500 frames |
+| `chroma.jpg` | chroma denoise, three states (crop + full frame) | ISO400 Milky Way, 40 frames |
+| `denoise.jpg` | wavelet denoise, three strengths | Orion, 20 frames |
+| `star_reduce.jpg` | star reduction before and after | Orion, 1050 frames |
+| `star_remove.jpg` | star removal before and after | Orion, 1050 frames |
+| `stretch.jpg` | linear vs auto stretched | Orion, 1050 frames |
+| `warp_compare.jpg` | cubic vs bilinear resampling | Orion, 60 frames |
+| `name_border.jpg` | framed output | Orion, 1050 frames |

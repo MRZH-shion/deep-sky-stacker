@@ -1,5 +1,7 @@
 # 深空堆栈工具（Deep-Sky Stacker）
 
+**语言：中文 | [English](README.en.md)**
+
 把一批 RAW 帧对齐、剔除、叠加成一张深空照片的 Windows 工具。
 Python 写的，有图形界面也能命令行跑，可以打包成单文件 exe。
 
@@ -48,6 +50,7 @@ deep-sky-stacker/
 │   └─ README.md               数据来源与许可是谁
 ├─ docs/
 │   ├─ 使用说明.txt             每个参数影响什么（详细）
+│   ├─ manual.en.md            同一份手册的英文版
 │   ├─ README.txt              参数速查与实测数据
 │   └─ images/                 README 用的功能例图（10 张）
 ├─ LICENSES/                   第三方许可全文（12 个）

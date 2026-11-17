@@ -1,5 +1,7 @@
 # 贡献指南（Contributing）
 
+**语言：中文 | [English](CONTRIBUTING.en.md)**
+
 感谢你愿意改进这个项目。提交前请先读一遍下面几条，可以省掉来回返工。
 
 ## 提交前自检

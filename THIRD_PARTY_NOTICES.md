@@ -1,5 +1,7 @@
 # 第三方组件与数据来源声明（Third-Party Notices）
 
+**语言：中文 | [English](THIRD_PARTY_NOTICES.en.md)**
+
 本项目（深空堆栈工具 / Deep-Sky Stacker）在**源代码层面**只使用宽松许可（MIT / BSD /
 Apache-2.0）的库，可以自由地公开、修改、商用。
 
