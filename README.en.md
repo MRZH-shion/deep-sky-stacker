@@ -29,6 +29,8 @@ can be left on auto.
 | Calibration | Master dark (4σ clipped mean); master flat normalised per CFA plane |
 | Registration | Star detection + triangle-invariant matching + similarity transform (shift / rotation / scale) |
 | Stacking | Two-pass κσ rejection, single-pass online rejection, GPU (CuPy, hand-written Catmull-Rom) |
+| Stack quality | Per-frame weights from star count / noise / sharpness by default; `--ln` adds per-frame local normalisation for thin cloud and transparency swings |
+| Colour calibration | `--color-cal` neutralises the background per channel; aimed at the linear TIFF people keep for their own post-processing |
 | Light pollution | Per-frame LP removal, Background2D (mesh + structure protection), polynomial, RBF |
 | Denoising | Luminance: à trous wavelet; chroma: wavelet chroma denoise (both light/medium/strong) |
 | Star handling | Star reduction / removal built into the stacking run (`--star-mode`), plus auto-stretch and framed output |
@@ -277,6 +279,18 @@ python src/astro_stack_gui.py --cli --lights "D:\photos\x" --star-mode remove
 
 Every parameter is documented in [`docs/manual.en.md`](docs/manual.en.md) (Chinese version:
 [`docs/使用说明.txt`](docs/使用说明.txt)).
+
+### When to use these switches
+
+- **Quality weighting** (on by default): useful when a batch mixes thin-cloud or defocused
+  frames — weak frames are pushed down to a quarter weight. On uniform data the result barely
+  changes (background σ 10.750 → 10.748 measured).
+- **Local normalisation** (`--ln`, off by default): for noticeably varying transparency. It
+  samples only the central 70%, clamps gain to 1±8% and skips changes under 1%; on uniform data
+  it costs 0.3–2.4% noise, which is why it stays off.
+- **Colour calibration** (`--color-cal`, off by default): affects only the linear TIFF — the
+  preview subtracts the background per channel, so it looks unchanged there. Meant for people
+  who continue in PixInsight / PS; measured background G/R dropped from 1.12 to 1.01.
 
 ---
 
