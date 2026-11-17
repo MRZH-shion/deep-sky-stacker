@@ -162,6 +162,11 @@ EN.update({
     "已生成: %s": "written: %s",
 })
 
+EN.update({
+    "已生成带名称白边的成品\n\n目标: %s\n输出: %s": "Framed output written\n\nObject: %s\nOutput: %s",
+    "未知": "unknown",
+})
+
 
 def _lang_path():
     base = (os.path.dirname(sys.executable) if getattr(sys, "frozen", False)
@@ -1746,9 +1751,11 @@ def _load_font(size):
 
 
 def short_label(label):
-    """去掉英文括注, 只留 '编号 中文名'."""
+    """中文界面: 去掉英文括注, 只留 '编号 中文名'; 英文界面: 取英文名."""
     if not label:
-        return "未知"
+        return tr("未知")
+    if LANG == "en":
+        return obj_display_name(label)
     return label.split(" (")[0].strip()
 
 
@@ -3001,8 +3008,8 @@ def run_cli(argv):
 
     if a.stretch:
         tif, jpg = stretch_image(a.stretch, a.out, sat=a.sat)
-        print("已生成: %s" % tif, flush=True)
-        print("已生成: %s" % jpg, flush=True)
+        print(tr("已生成: %s") % tif, flush=True)
+        print(tr("已生成: %s") % jpg, flush=True)
         return 0
 
     if a.frame:
@@ -3015,7 +3022,7 @@ def run_cli(argv):
                 print(line, flush=True)
         out = a.out or (os.path.splitext(a.frame)[0] + "_framed.jpg")
         add_name_border(a.frame, out, obj_display_name(name), a.border)
-        print("已生成: %s  (目标: %s)" % (out, short_label(name)), flush=True)
+        print(tr("已生成: %s  (目标: %s)") % (out, short_label(name)), flush=True)
         return 0
 
     if a.identify:
@@ -3653,7 +3660,7 @@ def run_gui():
                 log("[加边框] 手动指定: %s" % name)
             out = add_name_border(path, None, obj_display_name(name), opts["border"])
             log("[加边框] 已保存: %s" % out)
-            q.put(("ident", "已生成带名称白边的成品\n\n目标: %s\n输出: %s" % (short_label(name), out)))
+            q.put(("ident", tr("已生成带名称白边的成品\n\n目标: %s\n输出: %s") % (short_label(name), out)))
         except Exception as e:
             q.put(("fail", "加边框失败: %r" % (e,)))
         finally:
