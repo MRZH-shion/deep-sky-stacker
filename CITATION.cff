@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "如果本项目对你的工作有帮助，请按以下格式引用。"
+title: "深空堆栈工具（Deep-Sky Stacker）"
+abstract: "面向深空摄影的批量堆栈工具：暗场/平场校正、星点配准、单遍 κσ 叠加、去光污染、小波降噪、星点分离与星场盲解目标识别，支持 CPU/GPU 与图形界面。"
+authors:
+  - family-names: "MRZH"
+    given-names: ""
+    alias: "MRZH"
+type: software
+license: MIT
+repository-code: "https://github.com/MRZH-shion/deep-sky-stacker"
+version: "1.0.0"
+date-released: "2026-11-17"
+keywords:
+  - astronomy
+  - astrophotography
+  - image-stacking
+  - plate-solving
+  - deep-sky
+references:
+  - type: software
+    title: "tetra3: A fast lost-in-space plate solver"
+    authors:
+      - name: "European Space Agency"
+    license: Apache-2.0
+    repository-code: "https://github.com/esa/tetra3"
+  - type: dataset
+    title: "OpenNGC — Open NGC/IC Database"
+    authors:
+      - family-names: "Verga"
+        given-names: "Mattia"
+    license: CC-BY-SA-4.0
+    repository-code: "https://github.com/mattiaverga/OpenNGC"
+  - type: book
+    title: "The Hipparcos and Tycho Catalogues (ESA SP-1200)"
+    year: 1997
+    publisher:
+      name: "ESA"

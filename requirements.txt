@@ -1,0 +1,18 @@
+# 运行期依赖
+numpy==2.5.4
+scipy==1.18.1
+rawpy==0.28.0
+tifffile==2026.11.8
+Pillow==12.3.0
+
+# 星场盲解（tetra3，Apache-2.0，© ESA）
+# 注意：tetra3 没有发布到 PyPI，`pip install tetra3` 会 404，必须装源码：
+#   pip install git+https://github.com/esa/tetra3@master
+# 它依赖 numpy / scipy / scikit-image。
+
+# 可选：GPU 加速（NVIDIA 显卡 + CUDA 12 驱动）
+# 注意：这会安装 NVIDIA 的专有 CUDA 运行库，请遵守其 EULA
+# cupy-cuda12x==14.2.0
+
+# 仅打包 exe 时需要
+# pyinstaller==6.22.3

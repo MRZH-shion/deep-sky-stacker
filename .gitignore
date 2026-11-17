@@ -1,0 +1,54 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ---------- 构建产物 ----------
+build/
+dist/
+*.spec
+*.exe
+*.pyd
+*.dll
+
+# ---------- 专有运行库：绝对不要提交 ----------
+# NVIDIA CUDA 运行库属专有许可（LicenseRef-NVIDIA-Proprietary），
+# 只允许随应用再分发，禁止单独入库/再许可。
+gpu_runtime/
+cuda_shim/
+nvidia/
+cupy/
+cupyx/
+cupy_backends/
+
+# ---------- 大型二进制 / 素材 ----------
+output/
+*.ARW
+*.arw
+*.CR2
+*.cr2
+*.NEF
+*.nef
+*.DNG
+*.dng
+*.tif
+*.tiff
+!data/*.tif
+
+# ---------- 测试/临时文件 ----------
+tests/
+compare/
+*.log
+_MEI*/
+tmp/
+temp/
+
+# ---------- 编辑器/系统 ----------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
