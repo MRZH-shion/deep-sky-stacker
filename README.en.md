@@ -8,7 +8,7 @@ Written in Python, ships with a GUI and a CLI, and can be packaged into a single
 Handles batches of 1000+ frames: GPU single-pass stacking, automatic light-pollution
 grading, and automatic plate solving.
 
-**Languages:** English | [中文](README.zh-CN.md)
+**Languages:** English | [中文](README.md)
 
 ---
 
