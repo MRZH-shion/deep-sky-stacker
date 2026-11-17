@@ -145,6 +145,19 @@ EN.update({
 })
 
 
+EN.update({
+    '亮场 %d 张, 暗场 %d 张, 平场 %d 张': 'lights %d, darks %d, flats %d',
+    '未提供暗场, 跳过暗场校正': 'no darks supplied, skipping dark calibration',
+    '未提供平场, 跳过平场校正': 'no flats supplied, skipping flat calibration',
+    '星点检测完成, 有效帧 %d/%d': 'star detection done, %d/%d frames usable',
+    '配准完成: %d/%d 帧': 'registration done: %d/%d frames',
+    '按公共覆盖范围裁剪 -> %d x %d': 'cropped to common coverage -> %d x %d',
+    '已保存线性 16bit TIFF: %s': 'linear 16-bit TIFF saved: %s',
+    '已保存预览图(仅拉伸, 未做色彩校准): %s': 'preview written (stretched, not colour-calibrated): %s',
+    '识别结果已写入: %s': 'identification written: %s',
+})
+
+
 def _lang_path():
     base = (os.path.dirname(sys.executable) if getattr(sys, "frozen", False)
             else os.path.dirname(os.path.abspath(__file__)))
