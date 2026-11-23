@@ -106,11 +106,14 @@ weight from its star count, background noise and star sharpness, normalised to m
 prints the range). Weaker frames are pushed down, to at most a quarter weight. `--no-weight`
 turns it off.
 
-**Local normalisation (default off, experimental)** — for frames that differ in transparency,
-thin cloud or light pollution. Block medians from the central 70% of the frame are fitted
-against the reference; gain is clamped to 1+/-8% and changes under 1% are skipped. Measured on
-uniform data it costs 2-3% noise, hence off by default. Enable with `--ln` or the checkbox.
-GPU stacking applies weights only.
+**Local normalisation (default on, `--no-ln` to disable)** — block medians from the central
+70% of the frame are fitted against the reference; gain is clamped to 1+/-8% and changes under
+1% are skipped. Measured over 300 frames: background σ 11.249 -> 10.989 (-2.3%) for 2.7% more
+runtime. GPU stacking applies weights only.
+
+**Threads (default 0 = auto)** — derived from image size and available memory: one stacking
+thread for a 6000x4000 frame needs about 0.45 GB and the count is capped to the memory budget
+(55% of free RAM). `--threads N` fixes it, `--mem-gb G` changes the budget.
 
 **Colour calibration (default off)** — background neutralisation: per-channel gains from
 background percentiles pull the sky to neutral grey. On our Orion data G/R went from 1.12 to

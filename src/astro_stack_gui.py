@@ -49,6 +49,55 @@ except Exception:
 DEFAULT_STACK_MODE = os.environ.get("STACKER_MODE", "auto")
 
 
+def mem_info_gb():
+    """返回 (总物理内存, 可用内存) GB；取不到时返回 (0, 0)。"""
+    try:
+        if os.name == "nt":
+            import ctypes
+
+            class MS(ctypes.Structure):
+                _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+                            ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+                            ("ullTotalPageFile", ctypes.c_ulonglong), ("ullAvailPageFile", ctypes.c_ulonglong),
+                            ("ullTotalVirtual", ctypes.c_ulonglong), ("ullAvailVirtual", ctypes.c_ulonglong),
+                            ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+
+            ms = MS()
+            ms.dwLength = ctypes.sizeof(MS)
+            if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(ms)):
+                return ms.ullTotalPhys / 2 ** 30, ms.ullAvailPhys / 2 ** 30
+            return 0.0, 0.0
+        page = os.sysconf("SC_PAGE_SIZE")
+        total = os.sysconf("SC_PHYS_PAGES") * page / 2 ** 30
+        avail = os.sysconf("SC_AVPHYS_PAGES") * page / 2 ** 30
+        return total, avail
+    except Exception:
+        return 0.0, 0.0
+
+
+def thread_memory_gb(w, h):
+    """单个叠加线程大致占多少内存：4 个平面的累加器 + 一块解码缓冲。"""
+    plane = (w // 2) * (h // 2)
+    acc = plane * (4 + 8 + 4)          # sum(float32) + sq(float64) + cnt(float32)
+    decode = w * h * 2                 # uint16 原始帧
+    warp = plane * 4                   # 重采样临时数组
+    return (4 * acc + decode + 2 * warp) / 2 ** 30
+
+
+def auto_threads(w, h, budget_gb=None, cpu=None, cap=16):
+    """按内存预算算线程数；预算不够就往下压，最少 1。"""
+    cpu = cpu or (os.cpu_count() or 4)
+    if not budget_gb or budget_gb <= 0:
+        total, avail = mem_info_gb()
+        # 没有可用内存信息时保守取 4 GB，避免小机器被撑爆
+        budget_gb = 0.55 * (avail if avail > 0 else 8.0)
+    per = thread_memory_gb(w, h)
+    if per <= 0:
+        return max(1, min(cpu, cap))
+    n = int(budget_gb / per)
+    return max(1, min(cpu, cap, n))
+
+
 def _gpu_available():
     """GPU 叠加是否可用: 只看 gpu_runtime 是否随程序一起提供(真正的导入失败会在
     叠加时自动回退 CPU, 不会中断流程)."""
@@ -177,7 +226,7 @@ EN.update({
 })
 
 EN.update({
-    "开启逐帧局部归一化(实验性)": "enable per-frame local normalisation (experimental)",
+    "关闭逐帧局部归一化": "disable per-frame local normalisation",
     "关闭质量加权叠加": "disable quality-weighted stacking",
     "应用相机色彩矩阵(色彩校准)": "apply the camera colour matrix (colour calibration)",
     "质量加权": "Quality weighting",
@@ -188,6 +237,16 @@ EN.update({
     "色彩校准: 已应用相机色彩矩阵": "colour calibration: camera matrix applied",
     "解码": "decode", "星点检测": "star detection", "配准": "register",
     "叠加": "stack", "后处理": "post",
+})
+
+EN.update({
+    "线程数(0=自动)": "Threads (0 = auto)",
+    "线程数, 0=按内存自动(默认)": "thread count, 0 = pick from available memory (default)",
+    "内存预算 GB, 0=按可用内存自动(默认)": "memory budget in GB, 0 = from available memory (default)",
+    "线程 %d（单线程约 %.1f GB，内存预算 %.1f GB，可用 %.0f GB）":
+        "threads %d (%.1f GB per thread, budget %.1f GB, %.0f GB free)",
+    "线程从 %d 降到 %d：单线程约 %.1f GB，预算 %.1f GB":
+        "threads reduced %d -> %d (%.1f GB per thread, budget %.1f GB)",
 })
 
 
@@ -360,7 +419,7 @@ def ln_correct(plane, ref_mean, block=64, deg=1, max_gain=0.08, min_change=0.01)
     b = float(np.clip(b, -0.03 * ref_med, 0.03 * ref_med))
     if abs(a - 1.0) < min_change and abs(b) < 1.0:
         return plane
-    return ((plane - b) / a).astype(np.float32)
+    return (plane * a + b).astype(np.float32)      # ref = a*plane + b
 
 
 def color_balance(rgb, q=30.0, max_gain=2.0):
@@ -2166,7 +2225,7 @@ class Pipeline(object):
         warm = min(25, max(5, nframes // max(nthreads, 1)))
 
         warp_ord = _warp_order(o)
-        use_ln = bool(getattr(o, "local_norm", False))
+        use_ln = bool(getattr(o, "local_norm", True))
         wts = self._weights
 
         def worker(ci):
@@ -2310,7 +2369,7 @@ class Pipeline(object):
             return a
 
         warp_ord = _warp_order(o)
-        if getattr(o, "local_norm", False):
+        if getattr(o, "local_norm", True):
             self.log("GPU 叠加暂不做局部归一化(只做质量加权)")
         nworker = max(2, min(6, int(o.threads)))
         k = 0
@@ -2373,6 +2432,29 @@ class Pipeline(object):
         if not lights:
             raise RuntimeError("亮场文件夹中找不到 RAW 文件")
         self.log("亮场 %d 张, 暗场 %d 张, 平场 %d 张" % (len(lights), len(darks), len(flats)))
+
+        # ---------- 线程数按内存自适应 ----------
+        try:
+            _img0, _meta0 = decode(lights[0])
+            _h0, _w0 = _img0.shape
+            del _img0
+            self._hint_shape = (_h0, _w0)
+            total_gb, avail_gb = mem_info_gb()
+            budget = float(getattr(o, "mem_gb", 0) or 0)
+            if budget <= 0:
+                budget = 0.55 * (avail_gb if avail_gb > 0 else 8.0)
+            want = int(getattr(o, "threads", 0) or 0)
+            n_auto = auto_threads(_w0, _h0, budget, cap=32)
+            use = n_auto if want <= 0 else min(want, n_auto)
+            if use != want and want > 0:
+                self.log("线程从 %d 降到 %d：单线程约 %.1f GB，预算 %.1f GB"
+                         % (want, use, thread_memory_gb(_w0, _h0), budget))
+            else:
+                self.log("线程 %d（单线程约 %.1f GB，内存预算 %.1f GB，可用 %.0f GB）"
+                         % (use, thread_memory_gb(_w0, _h0), budget, avail_gb))
+            o.threads = max(1, use)
+        except Exception as _e:
+            self.log("内存自适应失败, 沿用线程数 %s: %r" % (getattr(o, "threads", "?"), _e))
 
         # ---------- 光污染傻瓜模式: 等级 -> 具体参数 ----------
         lvl = str(getattr(o, "lp_level", "manual") or "manual").lower()
@@ -2616,7 +2698,7 @@ class Pipeline(object):
 
         def stack_pass(clip, mean=None, sd=None):
             warp_ord = _warp_order(o)
-            use_ln = bool(getattr(o, "local_norm", False))
+            use_ln = bool(getattr(o, "local_norm", True))
             wts = self._weights
             nthreads = max(1, int(o.threads))
             chunks = [c for c in np.array_split(idx, nthreads)]
@@ -3136,7 +3218,10 @@ def run_cli(argv):
     ap.add_argument("--flats", default=None)
     ap.add_argument("--out", default=None)
     ap.add_argument("--kappa", type=float, default=3.0)
-    ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--threads", type=int, default=0,
+                    help=tr("线程数, 0=按内存自动(默认)"))
+    ap.add_argument("--mem-gb", type=float, default=0.0,
+                    help=tr("内存预算 GB, 0=按可用内存自动(默认)"))
     ap.add_argument("--limit", type=int, default=0, help=tr("只处理前 N 张亮场(调试用)"))
     ap.add_argument("--no-crop", action="store_true")
     ap.add_argument("--no-identify", action="store_true", help=tr("不做目标识别"))
@@ -3156,7 +3241,7 @@ def run_cli(argv):
     ap.add_argument("--stretch-sat", type=float, default=1.18, help=tr("拉伸图饱和度倍数"))
     ap.add_argument("--flatten", action="store_true", help=tr("背景平整(叠加后): 去大尺度渐变"))
     ap.add_argument("--lp", action="store_true", help=tr("逐帧去光污染(适合重度光害/无跟踪)"))
-    ap.add_argument("--ln", action="store_true", help=tr("开启逐帧局部归一化(实验性)"))
+    ap.add_argument("--no-ln", action="store_true", help=tr("关闭逐帧局部归一化"))
     ap.add_argument("--no-weight", action="store_true", help=tr("关闭质量加权叠加"))
     ap.add_argument("--color-cal", action="store_true", help=tr("应用相机色彩矩阵(色彩校准)"))
     ap.add_argument("--fast-warp", action="store_true",
@@ -3263,7 +3348,7 @@ def run_cli(argv):
     o.lp_level = a.lp_level
     o.type_opt = not bool(a.no_type_opt)
     o.warp_order = 1 if a.fast_warp else 3
-    o.local_norm = bool(a.ln)
+    o.local_norm = not bool(a.no_ln)
     o.frame_weight = not bool(a.no_weight)
     o.color_cal = bool(a.color_cal)
     o.denoise = {"off": 0.0, "light": 0.30, "medium": 0.50, "strong": 0.70}.get(a.denoise, 0.0)
@@ -3526,14 +3611,14 @@ def run_gui():
     v_flat = tk.StringVar()
     v_out = tk.StringVar()
     v_kappa = tk.DoubleVar(value=3.0)
-    v_threads = tk.IntVar(value=max(2, min(8, (os.cpu_count() or 4) // 2)))
+    v_threads = tk.IntVar(value=0)          # 0 = 按内存自动
     v_crop = tk.BooleanVar(value=True)
     v_ident = tk.BooleanVar(value=True)
     v_wb = tk.BooleanVar(value=False)
     v_png = tk.BooleanVar(value=False)
     v_out_kind = tk.StringVar(value="线性 + 拉伸（都生成）")
     v_type_opt = tk.BooleanVar(value=True)
-    v_ln = tk.BooleanVar(value=False)
+    v_ln = tk.BooleanVar(value=True)
     v_weight = tk.BooleanVar(value=True)
     v_colorcal = tk.BooleanVar(value=False)
     v_lp_level = tk.StringVar(value="自动判断（推荐）")
@@ -3584,8 +3669,8 @@ def run_gui():
     opt.grid(row=4, column=0, columnspan=3, sticky="we", pady=(8, 4))
     ttk.Label(opt, text="σ 剔除倍数").grid(row=0, column=0, sticky="w")
     ttk.Spinbox(opt, from_=1.5, to=6.0, increment=0.5, textvariable=v_kappa, width=6).grid(row=0, column=1, padx=(4, 18))
-    ttk.Label(opt, text="线程数").grid(row=0, column=2, sticky="w")
-    ttk.Spinbox(opt, from_=1, to=32, textvariable=v_threads, width=6).grid(row=0, column=3, padx=(4, 18))
+    ttk.Label(opt, text="线程数(0=自动)").grid(row=0, column=2, sticky="w")
+    ttk.Spinbox(opt, from_=0, to=32, textvariable=v_threads, width=6).grid(row=0, column=3, padx=(4, 18))
     # ---- 第 1 行: 叠加方式 ----
     ttk.Label(opt, text="叠加方式").grid(row=1, column=0, sticky="w", pady=(8, 2))
     _stack_box = ttk.Combobox(opt, textvariable=v_stack, width=18, state="readonly",

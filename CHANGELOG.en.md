@@ -8,6 +8,10 @@ follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Thread count now derives from available memory (0 = auto, `--mem-gb` sets the budget);
+  unit tests and an end-to-end regression added under `tests/`, run by CI
+- Fixed the local-normalisation inverse (gain/offset were applied backwards); after the fix
+  300-frame noise drops 2.3%, so it is on by default again
 - Quality-weighted stacking (on), per-frame local normalisation (off, experimental),
   colour calibration (background neutralisation)
 - Drag-and-drop folders (optional tkinterdnd2); staged progress with ETA

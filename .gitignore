@@ -39,7 +39,7 @@ output/
 !data/*.tif
 
 # ---------- 测试/临时文件 ----------
-tests/
+# tests/ 是仓库自带的单元测试，要入库；这里只忽略临时目录
 compare/
 *.log
 _MEI*/

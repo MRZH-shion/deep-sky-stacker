@@ -32,6 +32,9 @@ jobs:
           python src/astro_stack_gui.py --selftest
           python src/astro_stack_gui.py --help
 
+      - name: 单元测试
+        run: python tests/run_tests.py
+
       - name: 许可自查
         shell: bash
         run: |

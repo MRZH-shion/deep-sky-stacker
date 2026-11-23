@@ -29,7 +29,7 @@ can be left on auto.
 | Calibration | Master dark (4σ clipped mean); master flat normalised per CFA plane |
 | Registration | Star detection + triangle-invariant matching + similarity transform (shift / rotation / scale) |
 | Stacking | Two-pass κσ rejection, single-pass online rejection, GPU (CuPy, hand-written Catmull-Rom) |
-| Stack quality | Per-frame weights from star count / noise / sharpness by default; `--ln` adds per-frame local normalisation for thin cloud and transparency swings |
+| Stack quality | Per-frame weights from star count / noise / sharpness, plus local normalisation (`--no-ln` to disable); thread count adapts to available memory |
 | Colour calibration | `--color-cal` neutralises the background per channel; aimed at the linear TIFF people keep for their own post-processing |
 | Light pollution | Per-frame LP removal, Background2D (mesh + structure protection), polynomial, RBF |
 | Denoising | Luminance: à trous wavelet; chroma: wavelet chroma denoise (both light/medium/strong) |
@@ -46,6 +46,9 @@ can be left on auto.
 deep-sky-stacker/
 ├─ src/
 │   └─ astro_stack_gui.py      main program (GUI + CLI, single file)
+├─ tests/
+│   ├─ run_tests.py            test entry point (unit + optional end-to-end)
+│   └─ test_units.py           unit tests for pure functions and numeric stages
 ├─ tools/
 │   ├─ build_objects.py        builds data/objects.json from OpenNGC
 │   └─ build_db_narrow.py      generates the narrow-field star database
@@ -67,6 +70,17 @@ deep-sky-stacker/
 ```
 
 ---
+
+
+Run them:
+
+```bash
+python tests/run_tests.py
+
+# also run the 8-frame end-to-end regression on real frames
+set STACKER_TEST_LIGHTS=D:\photos\light   # Windows
+python tests/run_tests.py
+```
 
 ## Performance
 
@@ -260,6 +274,11 @@ Defaults in the options panel suit most situations.
 choice is stored in `settings.json` and reused next launch. On the command line use
 `--lang zh|en`, which switches both the log output and `--help`.
 
+**Threads**: default `0` (auto) — derived from image size and available memory. One stacking
+thread for a 6000×4000 frame needs about 0.45 GB, and the program caps the thread count to the
+memory budget (55% of free RAM by default) so small machines are not pushed into swapping.
+`--threads N` fixes it, `--mem-gb G` changes the budget.
+
 Common command lines:
 
 ```bash
@@ -285,9 +304,11 @@ Every parameter is documented in [`docs/manual.en.md`](docs/manual.en.md) (Chine
 - **Quality weighting** (on by default): useful when a batch mixes thin-cloud or defocused
   frames — weak frames are pushed down to a quarter weight. On uniform data the result barely
   changes (background σ 10.750 → 10.748 measured).
-- **Local normalisation** (`--ln`, off by default): for noticeably varying transparency. It
-  samples only the central 70%, clamps gain to 1±8% and skips changes under 1%; on uniform data
-  it costs 0.3–2.4% noise, which is why it stays off.
+- **Local normalisation** (on by default, `--no-ln` to disable): pulls each frame's gain and
+  offset back to the reference, flattening backgrounds that transparency changes have left
+  uneven. Samples only the central 70% (away from resampling edges), clamps gain to 1±8% and
+  skips changes under 1%. Measured over 300 frames: background σ 11.249 → 10.989 (−2.3%), at
+  a cost of 2.7% runtime.
 - **Colour calibration** (`--color-cal`, off by default): affects only the linear TIFF — the
   preview subtracts the background per channel, so it looks unchanged there. Meant for people
   who continue in PixInsight / PS; measured background G/R dropped from 1.12 to 1.01.
