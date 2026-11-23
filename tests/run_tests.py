@@ -13,6 +13,13 @@ import tempfile
 import time
 import traceback
 
+# CI 的 Windows 控制台默认是 cp1252/GBK，直接打印中文会 UnicodeEncodeError
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
